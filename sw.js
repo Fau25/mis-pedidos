@@ -1,5 +1,5 @@
 // Mis pedidos · service worker
-const CACHE = 'mis-pedidos-v8';
+const CACHE = 'mis-pedidos-v9';
 const FUENTES = 'mis-pedidos-fuentes';
 const BASE = ['./', 'index.html', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
