@@ -22,7 +22,7 @@
 :root{
   --bg:#E8E4DE; --card:#FFFFFF; --ink:#17161A; --ink2:#8A857E; --ink3:#B9B3AA; --line:#E7E2DA; --soft:#F3F0EB;
   --acc:#3D1FE0; --acc-soft:#ECE8FD; --on-acc:#FFFFFF;
-  --coral:#E3876A; --on-coral:#2A140C;
+  --coral:#E3876A; --on-coral:#2A140C; --morado:#3D1FE0;
   --st-pend:#A39D94; --st-tran:#3D1FE0; --st-rep:#3D1FE0; --st-rec:#8B3FE0; --st-ok:#4CA36B; --st-err:#D9614A;
   --shadow:0 1px 2px rgba(40,32,20,.04),0 6px 18px rgba(40,32,20,.05);
   --shadow-btn:0 1px 2px rgba(40,32,20,.05),0 4px 12px rgba(40,32,20,.06);
@@ -32,7 +32,7 @@
 @media (prefers-color-scheme: dark){
   :root{ --bg:#141312; --card:#211F1D; --ink:#F3F0EB; --ink2:#9B958C; --ink3:#5F5A53; --line:#2E2B28; --soft:#2B2825;
     --acc:#8F7DFF; --acc-soft:#2A2550; --on-acc:#120F26;
-    --coral:#E58A6E; --on-coral:#2A140C;
+    --coral:#E58A6E; --on-coral:#2A140C; --morado:#4A35E6;
     --st-pend:#8D877E; --st-tran:#8F7DFF; --st-rep:#8F7DFF; --st-rec:#B894FF; --st-ok:#62C285; --st-err:#F07A62;
     --shadow:none; --shadow-btn:none; color-scheme:dark }
 }
@@ -171,7 +171,8 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
 /* Ficha */
 .f-cab{background:var(--card);border-radius:var(--r);padding:16px 16px 18px;box-shadow:var(--shadow)}
 .f-copiar{display:inline-flex;align-items:center;gap:5px;min-width:0;max-width:55%;overflow:hidden;white-space:nowrap;font-size:13px;color:var(--ink2);margin:12px 0 0 2px;font-variant-numeric:tabular-nums}
-.f-copiar .ico{width:15px;height:15px}
+.f-copiar .ico{width:15px;height:15px;flex:none}
+.f-copiar span{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .ruta{display:flex;justify-content:space-between;gap:12px;margin-top:16px}
 .ruta>div{min-width:0}
 .ruta>div:last-child{text-align:right}
@@ -201,6 +202,24 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
 .ev.prim-ev .ev-p:before{background:var(--c);box-shadow:0 0 0 5px color-mix(in srgb,var(--c) 18%,transparent)}
 .ev-t b{display:block;font-size:15px;font-weight:600;line-height:1.3}
 .ev-t small{display:block;color:var(--ink2);font-size:13px;margin-top:3px}
+.linea.morada{background:var(--morado);box-shadow:0 10px 24px color-mix(in srgb,var(--morado) 28%,transparent)}
+.linea.morada .ev-f b,.linea.morada .ev-t b{color:#fff}
+.linea.morada .ev-f small,.linea.morada .ev-t small{color:rgba(255,255,255,.72)}
+.linea.morada .ev-p:before{background:rgba(255,255,255,.45)}
+.linea.morada .ev:not(:last-child) .ev-p:after{background:rgba(255,255,255,.28)}
+.linea.morada .ev.prim-ev .ev-p:before{background:#fff;box-shadow:0 0 0 5px rgba(255,255,255,.25)}
+.dB{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin:16px 6px 0}
+.dB div{padding:12px 0 12px 14px;border-left:2px solid var(--acc);min-width:0}
+.dB div:nth-child(2n){margin-left:10px}
+.dB small{display:block;font-size:12.5px;color:var(--ink2)}
+.dB b{display:block;font-size:16px;font-weight:600;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acciones{display:flex;justify-content:space-between;margin-top:20px;padding:0 2px}
+.acciones>*{display:flex;flex-direction:column;align-items:center;gap:7px;width:64px;color:var(--ink);text-decoration:none}
+.acciones .circ{width:54px;height:54px;border-radius:50%;background:var(--card);display:grid;place-items:center;box-shadow:var(--shadow-btn)}
+.acciones .circ .ico{width:21px;height:21px}
+.acciones small{font-size:12px;color:var(--ink2);white-space:nowrap}
+.acciones>*:active .circ{transform:scale(.93)}
+.acciones .borrar .circ{background:var(--coral);color:var(--on-coral)}
 .aviso{background:var(--soft);color:var(--ink);border-radius:20px;padding:13px 16px;font-size:14.5px;line-height:1.45;margin-top:14px}
 .btn-aviso{display:inline-block;margin-top:10px;background:var(--acc);color:var(--on-acc);font-weight:600;font-size:14px;padding:10px 16px;border-radius:20px}
 
@@ -237,6 +256,10 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
   <symbol id="i-copiar" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
   <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></symbol>
+  <symbol id="i-arch" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h13l-3-3M20 16H7l3 3"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
   <symbol id="i-web" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
 </svg>
 
@@ -321,7 +344,7 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
 
 <script>
 'use strict';
-const VERSION = 'v10';
+const VERSION = 'v11';
 const $ = s => document.querySelector(s);
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
@@ -578,14 +601,14 @@ function pintarFicha(){
     <div class="f-cab">
       <div class="c-top"><span class="burb" style="color:${col}">${ico(p.estado === 'delivered' ? 'i-ok' : e.i)}</span>
         <div class="c-main"><div class="c-nom">${esc(p.nombre)}</div><div class="c-sub">${esc([cour, p.tienda].filter(Boolean).join(' · '))}</div></div>${sello(p)}</div>
-      <div class="c-pie">${estChip(p)}<button class="f-copiar" id="bCopiar" aria-label="Copiar número" style="margin:0 0 0 auto">${esc(p.numero)} ${ico('i-copiar')}</button></div>
+      <div class="c-pie">${estChip(p)}<button class="f-copiar" id="bCopiar" aria-label="Copiar número" style="margin:0 0 0 auto"><span>${esc(p.numero)}</span>${ico('i-copiar')}</button></div>
       ${ruta(p, e)}
       ${p.estado === 'failed_attempt' ? '<div class="aviso">El repartidor no te ha encontrado. Mira el último movimiento: suele decir si lo intentará otra vez o lo deja en un punto de recogida.</div>' : ''}
       ${p.estado === 'available_for_pickup' ? '<div class="aviso">Ya puedes recogerlo. El último movimiento indica dónde.</div>' : ''}
       ${retrasado(p) ? `<div class="aviso">Tenía que llegar ${esc(corto(p.estimada).toLowerCase())} y aún no consta como entregado. Si sigue así, consulta con la tienda.</div>` : ''}
       ${quieto(p) ? `<div class="aviso">Lleva más de 2 días sin movimientos. Puede que la empresa aún no lo haya recogido o que no se haya detectado bien el transportista.<br><button class="btn-aviso" id="bTransF2">Elegir transportista</button></div>` : ''}
     </div>
-    <div class="linea" style="--c:${col}">
+    <div class="linea morada">
       ${evs.length ? evs.map((v, i) => {
           const m = /T(\d{2}):(\d{2})/.exec(local(v.fecha) || '');
           return `<div class="ev ${i === 0 ? 'prim-ev' : ''}">
@@ -595,20 +618,20 @@ function pintarFicha(){
           </div>`; }).join('')
         : '<div class="ev prim-ev"><div class="ev-f"><b>Ahora</b></div><div class="ev-p"></div><div class="ev-t"><b>Esperando el primer movimiento</b><small>La empresa de transporte aún no ha publicado datos. Aparecerán aquí solos.</small></div></div>'}
     </div>
-    <div class="datos">
-      <div class="dato"><small>Transporte</small><b>${esc(cour)}</b></div>
-      <div class="dato"><small>Tienda</small><b>${esc(p.tienda || '—')}</b></div>
-      <div class="dato"><small>${p.estado === 'delivered' ? 'Entregado' : 'Llegada estimada'}</small><b>${p.estado === 'delivered' ? esc(fecha(evs[0] && evs[0].fecha) || '—') : esc(p.estimada ? corto(p.estimada) : 'Sin fecha')}</b></div>
-      <div class="dato"><small>Comprobado</small><b>${esc(hace(p.actualizado) || '—')}</b></div>
+    <div class="dB">
+      <div><small>Transporte</small><b>${esc(cour)}</b></div>
+      <div><small>Tienda</small><b>${esc(p.tienda || '—')}</b></div>
+      <div><small>${p.estado === 'delivered' ? 'Entregado' : 'Llegada estimada'}</small><b>${p.estado === 'delivered' ? esc(fecha(evs[0] && evs[0].fecha) || '—') : esc(p.estimada ? corto(p.estimada) : 'Sin fecha')}</b></div>
+      <div><small>Comprobado</small><b>${esc(hace(p.actualizado) || '—')}</b></div>
     </div>
     ${p.errorUltimo ? `<p class="ayuda peligro">Última revisión con error: ${esc(errorTxt({error:p.errorUltimo}))}</p>` : ''}
-    <a class="sec" style="display:flex;justify-content:center;gap:8px;text-decoration:none;color:inherit;margin-top:14px" href="https://www.ship24.com/tracking?p=${encodeURIComponent(p.numero)}" target="_blank" rel="noopener">${ico('i-web')}Ver en Ship24</a>
-    <div class="fila2">
-      <button class="sec" id="bEditar">Editar</button>
-      <button class="sec" id="bArch">${p.archivado ? 'Desarchivar' : 'Archivar'}</button>
-    </div>
-    <button class="sec" id="bTransF">Cambiar transportista</button>
-    <button class="sec peligro" id="bBorrar">Borrar pedido</button>`;
+    <div class="acciones">
+      <a href="https://www.ship24.com/tracking?p=${encodeURIComponent(p.numero)}" target="_blank" rel="noopener"><span class="circ">${ico('i-web')}</span><small>Ship24</small></a>
+      <button id="bEditar"><span class="circ">${ico('i-edit')}</span><small>Editar</small></button>
+      <button id="bArch"><span class="circ">${ico('i-arch')}</span><small>${p.archivado ? 'Recuperar' : 'Archivar'}</small></button>
+      <button id="bTransF"><span class="circ">${ico('i-swap')}</span><small>Transportista</small></button>
+      <button id="bBorrar" class="borrar"><span class="circ">${ico('i-trash')}</span><small>Borrar</small></button>
+    </div>`;
   const abrirT = () => abrirTrans(p.id);
   $('#bTransF').onclick = abrirT; if ($('#bTransF2')) $('#bTransF2').onclick = abrirT;
   $('#bCopiar').onclick = () => navigator.clipboard.writeText(p.numero).then(() => toast('Número copiado'), () => toast('No se ha podido copiar'));
