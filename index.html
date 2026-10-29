@@ -321,7 +321,7 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
 
 <script>
 'use strict';
-const VERSION = 'v9';
+const VERSION = 'v10';
 const $ = s => document.querySelector(s);
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
@@ -772,14 +772,33 @@ setInterval(() => { if (!document.hidden) sincronizar(); }, 60000);
 setInterval(() => { if (!document.hidden) pintarCabecera(); }, 30000);
 let diaPintado = new Date().getDate();
 setInterval(() => { if (!document.hidden && !pila.length && new Date().getDate() !== diaPintado) { diaPintado = new Date().getDate(); pintar(); } }, 60000);
-if ('serviceWorker' in navigator) {
-  const habia = !!navigator.serviceWorker.controller;
-  navigator.serviceWorker.addEventListener('controllerchange', () => { if (habia) $('#nueva').hidden = false; });
-  navigator.serviceWorker.register('sw.js').then(reg => {
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
-  }).catch(() => {});
+/* ---------- Versión nueva ---------- */
+let regSW = null;
+async function comprobarVersion(){
+  try{
+    const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
+    const v = (await r.json()).v;
+    if (v && v !== VERSION) { $('#nueva').hidden = false; if (regSW) regSW.update().catch(() => {}); }
+  }catch(e){}
 }
-$('#bRecargar').onclick = () => location.reload();
+async function ponerVersionNueva(){
+  const b = $('#bRecargar'); b.textContent = 'Actualizando…'; b.disabled = true;
+  try{
+    if (regSW) { await regSW.update().catch(() => {}); if (regSW.waiting) regSW.waiting.postMessage('saltar'); }
+    const ks = await caches.keys();
+    await Promise.all(ks.filter(k => k !== 'mis-pedidos-fuentes').map(k => caches.delete(k)));
+  }catch(e){}
+  location.replace(location.pathname + '?v=' + Date.now());
+}
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => { regSW = reg; reg.update().catch(() => {}); }).catch(() => {});
+}
+$('#bRecargar').onclick = ponerVersionNueva;
+comprobarVersion();
+document.addEventListener('visibilitychange', () => { if (!document.hidden) comprobarVersion(); });
+setInterval(() => { if (!document.hidden) comprobarVersion(); }, 5 * 60000);
+// quitar el ?v= de la dirección después de actualizar
+if (location.search.includes('v=')) history.replaceState(null, '', location.pathname);
 </script>
 </body>
 </html>

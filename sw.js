@@ -1,10 +1,13 @@
 // Mis pedidos · service worker
-const CACHE = 'mis-pedidos-v9';
+const CACHE = 'mis-pedidos-v10';
 const FUENTES = 'mis-pedidos-fuentes';
 const BASE = ['./', 'index.html', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASE)).then(() => self.skipWaiting()));
+  // cache:'reload' → baja los archivos nuevos de verdad, sin usar la copia de 10 min de GitHub
+  e.waitUntil(caches.open(CACHE)
+    .then(c => c.addAll(BASE.map(u => new Request(u, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
@@ -12,6 +15,8 @@ self.addEventListener('activate', e => {
     .then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== FUENTES).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
+
+self.addEventListener('message', e => { if (e.data === 'saltar') self.skipWaiting(); });
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
@@ -29,18 +34,21 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  if (url.origin !== location.origin) return; // el script de Google va siempre a la red
+  if (url.origin !== location.origin) return;                 // el script de Google va siempre a la red
+  if (url.pathname.endsWith('version.json')) return;          // la comprobación de versión, siempre a la red
 
-  // Red primero (como mucho 1,5 s) y si no hay, la copia guardada
+  // Red primero (sin la copia de 10 min del navegador); si tarda más de 2,5 s o no hay red, la copia guardada
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);
+    const clave = e.request.mode === 'navigate' ? 'index.html' : e.request;
     try {
-      const red = fetch(e.request).then(r => { if (r.ok) cache.put(e.request, r.clone()); return r; });
-      const copia = await cache.match(e.request, { ignoreSearch: true });
+      const red = fetch(url.href, { cache: 'no-cache', credentials: 'same-origin' })
+        .then(r => { if (r.ok) cache.put(clave, r.clone()); return r; });
+      const copia = await cache.match(clave, { ignoreSearch: true });
       if (!copia) return await red;
-      return await Promise.race([red, new Promise(res => setTimeout(() => res(copia), 1500))]);
+      return await Promise.race([red, new Promise(res => setTimeout(() => res(copia), 2500))]);
     } catch (err) {
-      return (await cache.match(e.request, { ignoreSearch: true })) || (await cache.match('index.html'));
+      return (await cache.match(clave, { ignoreSearch: true })) || (await cache.match('index.html'));
     }
   })());
 });
