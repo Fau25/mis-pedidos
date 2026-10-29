@@ -73,7 +73,7 @@ header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92
 main{max-width:640px;margin:0 auto;padding:6px 20px calc(var(--safe-b) + 120px)}
 
 /* Lista con columna de fecha */
-.fila{display:grid;grid-template-columns:62px 1fr;gap:10px;margin-bottom:12px;align-items:start}
+.fila{margin-bottom:12px}
 .cuando{padding-top:16px;font-variant-numeric:tabular-nums}
 .cuando b{display:block;font-size:19px;font-weight:500;letter-spacing:-.3px;line-height:1.1}
 .cuando small{display:block;font-size:13px;color:var(--ink2);margin-top:3px}
@@ -309,7 +309,7 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
 
 <script>
 'use strict';
-const VERSION = 'v5';
+const VERSION = 'v6';
 const $ = s => document.querySelector(s);
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
@@ -474,9 +474,7 @@ function tarjeta(p){
   const sub = [cour, p.tienda].filter(Boolean).join(' · ') || p.numero;
   const donde = quieto(p) ? 'Sin movimiento desde ' + (ev ? corto(ev.fecha).toLowerCase() : 'que lo añadiste')
     : (ev && (ciudad(ev.lugar) || ev.texto)) || 'Esperando datos';
-  const c = cuando(p);
   return `<div class="fila">
-    <div class="cuando ${c.tarde ? 'tarde' : ''}"><b>${esc(partir(c.b))}</b><small>${esc(c.s)}</small></div>
     <button class="card ${terminado(p) ? 'fin' : ''}" data-id="${esc(p.id)}">
       <div class="c-top"><span class="burb" style="color:var(${e.c})">${ico(p.estado === 'delivered' ? 'i-ok' : e.i)}</span>
         <div class="c-main"><div class="c-nom">${esc(p.nombre)}</div><div class="c-sub">${esc(sub)}</div></div></div>
@@ -503,18 +501,11 @@ function pintar(){
   let html = '';
   if (tab === 'camino'){
     const f = FILTROS.find(x => x[0] === filtro) || FILTROS[0];
-    if (camino.length){
-      html += '<div class="chips" role="group" aria-label="Filtrar">' + FILTROS.map(([k, t, fn]) => {
-        const n = camino.filter(fn).length;
-        if (k !== 'todos' && !n && k !== filtro) return '';
-        return `<button class="chip ${k === filtro ? 'on' : ''} ${k === 'avisos' ? 'aviso-c' : ''}" data-f="${k}" aria-pressed="${k === filtro}"><small>${t}</small><b>${n}</b></button>`;
-      }).join('') + '</div>';
-    }
     const lista = camino.filter(f[2]).sort((a,b) => (orden[a.estado] ?? 9) - (orden[b.estado] ?? 9) || b.creado - a.creado);
     html += lista.length ? lista.map(tarjeta).join('') : camino.length ? '<p class="ayuda">Ningún pedido con este filtro.</p>' : vacio(!cfg.url
       ? ['Conecta la app', 'Abre Ajustes y pon la dirección del script y tu contraseña.']
       : ['Nada en camino', 'Cuando compres algo, añade su número de seguimiento y aquí verás cada paso del paquete.']);
-    if (cfg.url) html += `<div class="fila"><div class="cuando"></div><button class="nuevo" id="bNuevo">${ico('i-mas')}Añadir otro pedido</button></div>`;
+    if (cfg.url) html += `<div class="fila"><button class="nuevo" id="bNuevo">${ico('i-mas')}Añadir otro pedido</button></div>`;
   } else {
     const ent = fin.filter(p => !p.archivado).sort((a,b) => (b.entregadoEn||b.actualizado||0) - (a.entregadoEn||a.actualizado||0));
     const arc = fin.filter(p => p.archivado);
