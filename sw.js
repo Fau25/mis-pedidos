@@ -1,5 +1,5 @@
 // Mis pedidos · service worker
-const CACHE = 'mis-pedidos-v1';
+const CACHE = 'mis-pedidos-v2';
 const BASE = ['./', 'index.html', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
