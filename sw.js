@@ -1,5 +1,6 @@
 // Mis pedidos · service worker
-const CACHE = 'mis-pedidos-v2';
+const CACHE = 'mis-pedidos-v3';
+const FUENTES = 'mis-pedidos-fuentes';
 const BASE = ['./', 'index.html', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -8,13 +9,28 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
-    .then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))
+    .then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== FUENTES).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
-  if (e.request.method !== 'GET' || url.origin !== location.origin) return; // el script de Google va siempre a la red
+  if (e.request.method !== 'GET') return;
+
+  // La tipografía se guarda para que se vea igual sin conexión
+  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+    e.respondWith(caches.open(FUENTES).then(async c => {
+      const copia = await c.match(e.request);
+      if (copia) return copia;
+      const r = await fetch(e.request);
+      if (r.ok || r.type === 'opaque') c.put(e.request, r.clone());
+      return r;
+    }));
+    return;
+  }
+
+  if (url.origin !== location.origin) return; // el script de Google va siempre a la red
+
   // Red primero (como mucho 1,5 s) y si no hay, la copia guardada
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);
