@@ -101,6 +101,14 @@ main{max-width:640px;margin:0 auto;padding:6px 20px calc(var(--safe-b) + 120px)}
 .mini-ruta .barra .bola{width:38px;height:38px;margin:-19px 0 0 -19px}
 .mini-ruta .barra .bola .ico{width:18px;height:18px}
 .card.fin .ruta b{color:var(--ink2)}
+.sello{flex:none;width:60px;border-radius:18px;background:var(--acc);color:var(--on-acc);text-align:center;padding:6px 2px 7px;line-height:1.05}
+.sello b{display:block;font-size:24px;font-weight:600;letter-spacing:-.5px;white-space:nowrap}
+.sello small{display:block;font-size:11.5px;opacity:.85;white-space:nowrap}
+.sello.coral{background:var(--coral);color:var(--on-coral)}
+.sello.suave{background:var(--soft);color:var(--ink)}
+.sello.suave small{color:var(--ink2);opacity:1}
+.sello.verde{background:var(--st-ok);color:#fff}
+.sello b.txt{font-size:19px;padding:3px 0 2px}
 .nuevo{display:flex;align-items:center;gap:10px;width:100%;padding:18px 20px;border-radius:var(--r);border:1.5px dashed var(--ink3);color:var(--ink2);font-size:15px;font-weight:500;text-align:left}
 .nuevo .ico{width:18px;height:18px}
 
@@ -309,7 +317,7 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
 
 <script>
 'use strict';
-const VERSION = 'v6';
+const VERSION = 'v7';
 const $ = s => document.querySelector(s);
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
@@ -437,14 +445,14 @@ function vista(p){
 const PCT = [6, 25, 50, 75, 100];
 function corto(iso){ const f = fecha(iso); return f.replace(/ · .*/, ''); }
 function ciudad(l){ return String(l || '').split(/[,·\-–(]/)[0].trim(); }
-function ruta(p, e){
+function ruta(p, e, corta){
   const evs = p.eventos || [], ini = evs[evs.length-1], ult = evs[0];
   const fin = p.estado === 'delivered';
   const pct = fin ? 100 : PCT[e.p] || 6;
   const bolaIco = fin ? 'i-ok' : e.i;
   return `<div class="ruta">
       <div><small>${esc(ini ? corto(ini.fecha) : corto(new Date(p.creado||Date.now()).toISOString()))}</small><b>${esc(ciudad(ini && ini.lugar) || p.tienda || 'Origen')}</b></div>
-      <div><small>${esc(fin ? corto(ult && ult.fecha) : p.estado === 'available_for_pickup' ? 'Listo para recoger' : p.estimada ? (retrasado(p) ? 'Debía llegar ' : 'Llega ') + corto(p.estimada).toLowerCase() : 'Sin fecha')}</small><b>${esc(fin ? (ciudad(ult && ult.lugar) || 'Entregado') : p.estado === 'available_for_pickup' ? 'Recoger' : 'Tu casa')}</b></div>
+      <div><small>${esc(corta ? (fin ? 'Entregado' : 'Llegada') : fin ? corto(ult && ult.fecha) : p.estado === 'available_for_pickup' ? 'Listo para recoger' : p.estimada ? (retrasado(p) ? 'Debía llegar ' : 'Llega ') + corto(p.estimada).toLowerCase() : 'Sin fecha')}</small><b>${esc(fin ? (ciudad(ult && ult.lugar) || 'Entregado') : p.estado === 'available_for_pickup' ? 'Recoger' : 'Tu casa')}</b></div>
     </div>
     <div class="barra" style="--c:var(${e.c})">
       <i class="hecho" style="width:calc((100% - 16px) * ${pct/100})"></i>
@@ -467,6 +475,25 @@ function cuando(p){
   if (p.estimada) return { b: corto(p.estimada), s: retrasado(p) ? 'retraso' : 'llega', tarde: retrasado(p) };
   return { b: '—', s: 'sin fecha' };
 }
+function sello(p){
+  const MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const DIA = ['dom','lun','mar','mié','jue','vie','sáb'];
+  const html = (cls, a, b, c, txt) => `<div class="sello ${cls}" aria-label="${esc([a, b, c].join(' '))}"><small>${esc(a)}</small><b class="${txt ? 'txt' : ''}">${esc(b)}</b><small>${esc(c)}</small></div>`;
+  const fechaDe = iso => { const d = diaDe(iso); return d ? d : null; };
+  if (p.estado === 'delivered'){
+    const d = fechaDe((p.eventos || [])[0] && p.eventos[0].fecha);
+    return d ? html('suave', 'llegó', d.getDate(), MES[d.getMonth()]) : html('suave', 'llegó', '✓', '', true);
+  }
+  if (p.estado === 'available_for_pickup') return html('verde', 'para', 'Ya', 'recoger', true);
+  if (p.estado === 'out_for_delivery') return html('', 'reparto', 'Hoy', 'llega', true);
+  const d = fechaDe(p.estimada);
+  if (!d) return html('suave', 'llegada', '—', 'sin fecha', true);
+  const dif = Math.round((d - hoy0()) / 864e5);
+  if (retrasado(p)) return html('coral', 'debía', d.getDate(), MES[d.getMonth()]);
+  if (dif === 0) return html('', 'llega', 'Hoy', MES[d.getMonth()] + ' ' + d.getDate(), true);
+  if (dif === 1) return html('', 'mañana', d.getDate(), MES[d.getMonth()]);
+  return html('', DIA[d.getDay()], d.getDate(), MES[d.getMonth()]);
+}
 function partir(t){ const m = /^(\S+) (\d+) (\S+)$/.exec(t); return m ? `${m[2]} ${m[3]}` : t; }
 function tarjeta(p){
   const e = vista(p), ev = (p.eventos || [])[0];
@@ -477,9 +504,9 @@ function tarjeta(p){
   return `<div class="fila">
     <button class="card ${terminado(p) ? 'fin' : ''}" data-id="${esc(p.id)}">
       <div class="c-top"><span class="burb" style="color:var(${e.c})">${ico(p.estado === 'delivered' ? 'i-ok' : e.i)}</span>
-        <div class="c-main"><div class="c-nom">${esc(p.nombre)}</div><div class="c-sub">${esc(sub)}</div></div></div>
+        <div class="c-main"><div class="c-nom">${esc(p.nombre)}</div><div class="c-sub">${esc(sub)}</div></div>${sello(p)}</div>
       <div class="c-pie">${estChip(p)}<span class="c-donde" style="${quieto(p) ? 'color:var(--st-err)' : ''}">${ico(quieto(p) ? 'i-reloj' : 'i-pin')}<span>${esc(donde)}</span></span></div>
-      <div class="mini-ruta">${ruta(p, e)}</div>
+      <div class="mini-ruta">${ruta(p, e, true)}</div>
     </button>
   </div>`;
 }
@@ -527,7 +554,7 @@ function pintarFicha(){
   $('#fCuerpo').innerHTML = `
     <div class="f-cab">
       <div class="c-top"><span class="burb" style="color:${col}">${ico(p.estado === 'delivered' ? 'i-ok' : e.i)}</span>
-        <div class="c-main"><div class="c-nom">${esc(p.nombre)}</div><div class="c-sub">${esc([cour, p.tienda].filter(Boolean).join(' · '))}</div></div></div>
+        <div class="c-main"><div class="c-nom">${esc(p.nombre)}</div><div class="c-sub">${esc([cour, p.tienda].filter(Boolean).join(' · '))}</div></div>${sello(p)}</div>
       <div class="c-pie">${estChip(p)}<button class="f-copiar" id="bCopiar" aria-label="Copiar número" style="margin:0 0 0 auto">${esc(p.numero)} ${ico('i-copiar')}</button></div>
       ${ruta(p, e)}
       ${p.estado === 'failed_attempt' ? '<div class="aviso">El repartidor no te ha encontrado. Mira el último movimiento: suele decir si lo intentará otra vez o lo deja en un punto de recogida.</div>' : ''}
