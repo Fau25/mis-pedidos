@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F3F2EE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121417" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mis pedidos">
+<title>Mis pedidos</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F2EE; --card:#FFFFFF; --ink:#1B2430; --ink2:#5F6670; --line:#E3E1DA; --soft:#EAE8E2;
+  --acc:#2B50D6; --acc-soft:#E4E9FB;
+  --st-pend:#7A808A; --st-tran:#2B50D6; --st-rep:#B7791F; --st-rec:#7B4FC9; --st-ok:#1F8A5B; --st-err:#C2413A;
+  --shadow:0 1px 2px rgba(20,25,35,.06),0 4px 14px rgba(20,25,35,.05);
+  --r:18px; --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#121417; --card:#1C1F24; --ink:#EEF0F3; --ink2:#A2A8B2; --line:#2B2F36; --soft:#252930;
+    --acc:#7D98FF; --acc-soft:#232C4A;
+    --st-pend:#9AA0AA; --st-tran:#7D98FF; --st-rep:#E2A84B; --st-rec:#B394F0; --st-ok:#4CC38A; --st-err:#F07068;
+    --shadow:none; }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,-apple-system,sans-serif;font-size:16px;-webkit-font-smoothing:antialiased}
+body{min-height:100dvh;overflow-x:hidden}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+input{font:inherit;color:var(--ink)}
+svg{display:block}
+.ico{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* Cabecera */
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:calc(var(--safe-t) + 10px) 16px 10px}
+.top{display:flex;align-items:center;gap:8px;max-width:640px;margin:0 auto}
+.titulo{flex:1;display:flex;align-items:center;gap:8px;font-weight:800;font-size:24px;letter-spacing:-.3px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--st-pend)}
+.dot.ok{background:var(--st-ok)} .dot.mal{background:var(--st-err)} .dot.va{background:var(--st-rep);animation:lat 1s infinite}
+@keyframes lat{50%{opacity:.35}}
+.btn-ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--ink)}
+.btn-ico:active{background:var(--soft)}
+.girando svg{animation:gira .9s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+.seg{display:flex;background:var(--soft);border-radius:12px;padding:3px;max-width:640px;margin:10px auto 0}
+.seg button{flex:1;padding:8px 0;border-radius:10px;font-weight:700;font-size:15px;color:var(--ink2)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.seg .n{font-weight:600;opacity:.7;margin-left:4px}
+
+main{max-width:640px;margin:0 auto;padding:6px 16px calc(var(--safe-b) + 110px)}
+.revisado{font-size:13px;color:var(--ink2);text-align:center;margin:4px 0 12px}
+
+/* Tarjetas */
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);width:100%;text-align:left;display:block;border:1px solid transparent}
+.card:active{transform:scale(.99)}
+.c-top{display:flex;align-items:flex-start;gap:12px}
+.c-ico{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;flex:none;background:var(--soft)}
+.c-main{flex:1;min-width:0}
+.c-nom{font-weight:800;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-sub{font-size:13.5px;color:var(--ink2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.pill i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.c-ev{margin-top:12px;font-size:14.5px;line-height:1.35}
+.c-ev small{display:block;color:var(--ink2);font-size:13px;margin-top:2px}
+.prog{display:flex;gap:5px;margin-top:14px}
+.prog span{flex:1;height:5px;border-radius:3px;background:var(--soft)}
+.prog-l{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink2);margin-top:6px;font-weight:600}
+.eta{margin-top:10px;font-size:13.5px;font-weight:700}
+
+.vacio{text-align:center;color:var(--ink2);padding:60px 20px}
+.vacio svg{width:64px;height:64px;margin:0 auto 14px;stroke-width:1.3}
+.vacio b{display:block;color:var(--ink);font-size:18px;margin-bottom:6px}
+.sec-t{font-size:13px;font-weight:800;color:var(--ink2);text-transform:uppercase;letter-spacing:.6px;margin:22px 4px 10px}
+
+/* Botón añadir */
+.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-b) + 22px);z-index:6;
+  display:flex;align-items:center;gap:8px;background:var(--ink);color:var(--bg);font-weight:800;font-size:16px;
+  padding:15px 26px;border-radius:999px;box-shadow:0 6px 22px rgba(0,0,0,.22)}
+.fab:active{transform:translateX(-50%) scale(.97)}
+
+/* Hojas */
+.velo{position:fixed;inset:0;background:rgba(10,12,16,.38);z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
+.velo.on{opacity:1;pointer-events:auto}
+.hoja{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--bg);border-radius:24px 24px 0 0;
+  max-height:92dvh;overflow:auto;transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1);
+  padding:8px 18px calc(var(--safe-b) + 20px);max-width:640px;margin:0 auto;overscroll-behavior:contain}
+.hoja.on{transform:none}
+.asa{width:40px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 10px}
+.h-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.h-top h2{flex:1;margin:0;font-size:21px;font-weight:800}
+label{display:block;font-weight:700;font-size:14px;margin:14px 2px 6px}
+.campo{display:flex;align-items:center;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:0 6px 0 14px}
+.campo:focus-within{border-color:var(--acc)}
+.campo input{flex:1;border:0;background:none;outline:0;padding:14px 0;min-width:0;font-size:16px}
+.mini{font-size:13px;font-weight:800;color:var(--acc);padding:8px 10px;border-radius:10px}
+.ayuda{font-size:13px;color:var(--ink2);margin:8px 2px 0;line-height:1.4}
+.prim{width:100%;margin-top:20px;background:var(--ink);color:var(--bg);font-weight:800;padding:16px;border-radius:16px;font-size:16px}
+.prim:disabled{opacity:.5}
+.sec{width:100%;margin-top:10px;background:var(--card);font-weight:700;padding:14px;border-radius:16px;border:1px solid var(--line)}
+.peligro{color:var(--st-err)}
+.fila2{display:flex;gap:10px}.fila2>*{flex:1}
+
+/* Ficha */
+.f-cab{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:var(--shadow)}
+.f-num{display:flex;align-items:center;gap:8px;margin-top:12px;background:var(--soft);border-radius:12px;padding:6px 6px 6px 12px;font-family:ui-monospace,Menlo,monospace;font-size:14.5px}
+.f-num span{flex:1;overflow:hidden;text-overflow:ellipsis}
+.datos{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.dato{background:var(--card);border-radius:14px;padding:12px;box-shadow:var(--shadow)}
+.dato small{display:block;font-size:12px;color:var(--ink2);font-weight:700}
+.dato b{font-size:15px}
+.linea{position:relative;margin:18px 0 0;padding-left:26px}
+.linea:before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:var(--line)}
+.ev{position:relative;padding:0 0 18px}
+.ev:before{content:"";position:absolute;left:-24px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--line)}
+.ev.prim-ev:before{border-color:var(--c);background:var(--c);box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 22%,transparent)}
+.ev b{display:block;font-size:15px;font-weight:700;line-height:1.35}
+.ev small{display:block;color:var(--ink2);font-size:13px;margin-top:2px}
+.aviso{background:var(--acc-soft);border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.4;margin-top:12px}
+
+.toast{position:fixed;left:50%;bottom:calc(var(--safe-b) + 90px);transform:translate(-50%,20px);z-index:40;
+  background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-weight:700;font-size:14.5px;
+  opacity:0;pointer-events:none;transition:.25s;max-width:calc(100% - 32px);text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (min-width:700px){ .hoja{bottom:auto;top:50%;border-radius:24px;transform:translateY(-40%) scale(.98);opacity:0;pointer-events:none;transition:.22s}
+  .hoja.on{transform:translateY(-50%);opacity:1;pointer-events:auto} .asa{display:none} }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-caja" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8M7.5 5.5l9 5"/></symbol>
+  <symbol id="i-camion" viewBox="0 0 24 24"><path d="M2 6h11v10H2zM13 9h4l4 4v3h-8z"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></symbol>
+  <symbol id="i-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.7 2.7L16.5 9.5"/></symbol>
+  <symbol id="i-tienda" viewBox="0 0 24 24"><path d="M4 9h16l-1-5H5zM5 9v11h14V9M9 20v-6h6v6"/></symbol>
+  <symbol id="i-alerta" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-reloj" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-act" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8M4 4v4h4M4 13a8 8 0 0 0 14.6 4.5L20 16M20 20v-4h-4"/></symbol>
+  <symbol id="i-ajus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></symbol>
+  <symbol id="i-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-copiar" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
+  <symbol id="i-web" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+</svg>
+
+<header>
+  <div class="top">
+    <div class="titulo">Mis pedidos <span class="dot" id="dot" title="Sincronización"></span></div>
+    <button class="btn-ico" id="bAct" aria-label="Actualizar ahora"><svg class="ico"><use href="#i-act"/></svg></button>
+    <button class="btn-ico" id="bAjus" aria-label="Ajustes"><svg class="ico"><use href="#i-ajus"/></svg></button>
+  </div>
+  <div class="seg" role="tablist">
+    <button class="on" data-tab="camino" role="tab">En camino<span class="n" id="nCamino"></span></button>
+    <button data-tab="entregados" role="tab">Entregados<span class="n" id="nEntregados"></span></button>
+  </div>
+</header>
+
+<main id="lista"></main>
+
+<button class="fab" id="bAnadir"><svg class="ico"><use href="#i-mas"/></svg>Añadir pedido</button>
+
+<div class="velo" id="velo"></div>
+
+<!-- Añadir -->
+<section class="hoja" id="hAnadir" aria-label="Añadir pedido">
+  <div class="asa"></div>
+  <div class="h-top"><h2>Nuevo pedido</h2><button class="btn-ico" data-cerrar><svg class="ico"><use href="#i-x"/></svg></button></div>
+  <label for="aNum">Número de seguimiento</label>
+  <div class="campo"><input id="aNum" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Ej. 2885/11764172"><button class="mini" id="bPegar">Pegar</button></div>
+  <label for="aNom">¿Qué es?</label>
+  <div class="campo"><input id="aNom" maxlength="60" placeholder="Ej. Zapatillas"></div>
+  <label for="aTienda">Tienda <span style="font-weight:600;color:var(--ink2)">(opcional)</span></label>
+  <div class="campo"><input id="aTienda" maxlength="40" placeholder="Ej. Amazon, Zalando…"></div>
+  <p class="ayuda" id="aCupo">La empresa de transporte se detecta sola.</p>
+  <button class="prim" id="bGuardar">Empezar a seguir</button>
+</section>
+
+<!-- Ficha -->
+<section class="hoja" id="hFicha" aria-label="Detalle del pedido">
+  <div class="asa"></div>
+  <div class="h-top"><h2 id="fNom"></h2><button class="btn-ico" data-cerrar><svg class="ico"><use href="#i-x"/></svg></button></div>
+  <div id="fCuerpo"></div>
+</section>
+
+<!-- Editar -->
+<section class="hoja" id="hEditar" aria-label="Editar pedido">
+  <div class="asa"></div>
+  <div class="h-top"><h2>Editar</h2><button class="btn-ico" data-cerrar><svg class="ico"><use href="#i-x"/></svg></button></div>
+  <label for="eNom">¿Qué es?</label>
+  <div class="campo"><input id="eNom" maxlength="60"></div>
+  <label for="eTienda">Tienda</label>
+  <div class="campo"><input id="eTienda" maxlength="40"></div>
+  <button class="prim" id="bGuardarEd">Guardar</button>
+</section>
+
+<!-- Ajustes -->
+<section class="hoja" id="hAjus" aria-label="Ajustes">
+  <div class="asa"></div>
+  <div class="h-top"><h2>Ajustes</h2><button class="btn-ico" data-cerrar><svg class="ico"><use href="#i-x"/></svg></button></div>
+  <label for="sUrl">Dirección del script de Google</label>
+  <div class="campo"><input id="sUrl" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec"></div>
+  <label for="sClave">Contraseña</label>
+  <div class="campo"><input id="sClave" type="password" autocomplete="current-password"></div>
+  <button class="prim" id="bConectar">Guardar y conectar</button>
+  <div class="aviso" id="sEstado">Sin conectar.</div>
+  <p class="ayuda" id="sVer"></p>
+</section>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+'use strict';
+const VERSION = 'v1';
+const $ = s => document.querySelector(s);
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+let cfg = LS.get('mp-cfg', { url:'', clave:'' });
+let datos = LS.get('mp-datos', { pedidos: [] });
+let tab = 'camino', abierto = null, ocupado = false;
+
+/* ---------- Estados ---------- */
+const EST = {
+  pending:{t:'Pendiente', c:'--st-pend', i:'i-reloj', p:0},
+  info_received:{t:'Preparando', c:'--st-pend', i:'i-caja', p:1},
+  in_transit:{t:'En tránsito', c:'--st-tran', i:'i-camion', p:2},
+  out_for_delivery:{t:'En reparto', c:'--st-rep', i:'i-camion', p:3},
+  failed_attempt:{t:'Intento fallido', c:'--st-err', i:'i-alerta', p:3},
+  available_for_pickup:{t:'Para recoger', c:'--st-rec', i:'i-tienda', p:3},
+  delivered:{t:'Entregado', c:'--st-ok', i:'i-ok', p:4},
+  exception:{t:'Incidencia', c:'--st-err', i:'i-alerta', p:2}
+};
+const est = e => EST[e] || EST.pending;
+const ERRORES = {
+  clave:'Contraseña incorrecta.', bloqueado:'Demasiados intentos. Espera 10 minutos.',
+  'sin-clave':'Falta la contraseña en el script (propiedad CLAVE).',
+  'sin-ship24':'Falta la clave de Ship24 en el script (propiedad SHIP24_KEY).',
+  'ship24-clave':'Ship24 no acepta la clave. Revísala en el script.',
+  'ship24-cupo':'Se han acabado los envíos gratis de este mes en Ship24.',
+  'ship24-espera':'Ship24 pide esperar un momento. Prueba en un minuto.',
+  ship24:'Ship24 no ha podido buscar ese número.', numero:'Ese número no parece válido.',
+  repetido:'Ese pedido ya está en la lista.', red:'Sin conexión.', 'no-url':'Pon la dirección del script en Ajustes.'
+};
+
+/* ---------- Conexión ---------- */
+async function api(accion, extra){
+  if (!cfg.url) throw { error:'no-url' };
+  let r;
+  try{
+    const res = await fetch(cfg.url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(Object.assign({ accion, clave: cfg.clave }, extra || {})) });
+    r = await res.json();
+  }catch(e){ throw { error:'red' }; }
+  if (r.datos) ponerDatos(r.datos);
+  if (!r.ok) throw r;
+  return r;
+}
+function ponerDatos(d){ datos = d; LS.set('mp-datos', d); pintar(); if (abierto) pintarFicha(); }
+function punto(c){ $('#dot').className = 'dot ' + (c || ''); }
+function errorTxt(e){ return (e && ERRORES[e.error]) || 'Algo ha fallado' + (e && e.detalle ? ': ' + e.detalle : '.'); }
+
+async function sincronizar(){
+  if (!cfg.url || ocupado) { if (!cfg.url) punto('mal'); return; }
+  punto('va');
+  try{ await api('leer'); punto('ok'); }catch(e){ punto('mal'); if (e.error !== 'red') toast(errorTxt(e)); }
+}
+async function actualizarAhora(){
+  if (!cfg.url) return abrir('hAjus');
+  const b = $('#bAct'); if (b.classList.contains('girando')) return;
+  b.classList.add('girando'); ocupado = true; punto('va');
+  try{ await api('actualizar'); punto('ok'); toast('Actualizado'); }
+  catch(e){ punto('mal'); toast(errorTxt(e)); }
+  finally{ b.classList.remove('girando'); ocupado = false; }
+}
+
+/* ---------- Utilidades ---------- */
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const DIAS = ['dom','lun','mar','mié','jue','vie','sáb'];
+function fecha(iso){
+  if (!iso) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/.exec(iso);
+  if (!m) return iso;
+  const d = new Date(+m[1], +m[2]-1, +m[3]);
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const dif = Math.round((d - hoy) / 864e5);
+  const dia = dif === 0 ? 'Hoy' : dif === -1 ? 'Ayer' : dif === 1 ? 'Mañana' : `${DIAS[d.getDay()]} ${+m[3]} ${MESES[+m[2]-1]}`;
+  return dia + (m[4] ? ` · ${m[4]}:${m[5]}` : '');
+}
+function hace(ms){
+  if (!ms) return '';
+  const s = (Date.now() - ms) / 1000;
+  if (s < 90) return 'ahora mismo';
+  if (s < 3600) return `hace ${Math.round(s/60)} min`;
+  if (s < 86400) return `hace ${Math.round(s/3600)} h`;
+  return `hace ${Math.round(s/86400)} d`;
+}
+function courier(c){
+  if (!c) return '';
+  const fijos = { nacex:'Nacex', correos:'Correos', seur:'SEUR', gls:'GLS', mrw:'MRW', dhl:'DHL', ups:'UPS', ctt:'CTT', dpd:'DPD', tnt:'TNT', fedex:'FedEx', amazon:'Amazon', 'correos-express':'Correos Express', inpost:'InPost', celeritas:'Celeritas', 'tipsa':'Tipsa', 'envialia':'Envialia', cainiao:'Cainiao', 'zeleris':'Zeleris' };
+  const k = c.toLowerCase();
+  if (fijos[k]) return fijos[k];
+  if (/correos-?express/.test(k)) return 'Correos Express';
+  const partes = k.split(/[-_]/);
+  for (const f in fijos) if (partes.includes(f)) return fijos[f];
+  return k.split(/[-_]/).filter(w => !/^(es|eu|int|global|api)$/.test(w)).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || c;
+}
+const ico = (id, cls) => `<svg class="ico ${cls||''}"><use href="#${id}"/></svg>`;
+function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2600); }
+const terminado = p => p.archivado || p.estado === 'delivered';
+
+/* ---------- Lista ---------- */
+function tarjeta(p){
+  const e = est(p.estado), ev = (p.eventos || [])[0];
+  const col = `var(${e.c})`;
+  const sub = [p.tienda, (p.couriers || []).map(courier).join(' → ')].filter(Boolean).join(' · ') || p.numero;
+  const pasos = [0,1,2,3].map(i => `<span style="${i < e.p ? 'background:' + col : ''}"></span>`).join('');
+  const eta = p.estado !== 'delivered' && p.estimada ? `<div class="eta" style="color:${col}">Llega ${fecha(p.estimada).replace(/ · .*/, '').toLowerCase()}</div>` : '';
+  return `<button class="card" data-id="${esc(p.id)}">
+    <div class="c-top">
+      <div class="c-ico" style="color:${col};background:color-mix(in srgb,${col} 13%,transparent)">${ico(e.i)}</div>
+      <div class="c-main"><div class="c-nom">${esc(p.nombre)}</div><div class="c-sub">${esc(sub)}</div></div>
+      <span class="pill" style="color:${col};background:color-mix(in srgb,${col} 13%,transparent)"><i></i>${e.t}</span>
+    </div>
+    <div class="c-ev">${ev ? esc(ev.texto) : 'Aún sin movimientos. Algunas empresas tardan unas horas en publicar el primer dato.'}
+      ${ev ? `<small>${esc([fecha(ev.fecha), ev.lugar].filter(Boolean).join(' · '))}</small>` : ''}</div>
+    ${p.estado === 'delivered' || p.estado === 'exception' ? '' : `<div class="prog">${pasos}</div><div class="prog-l"><span>Preparado</span><span>En camino</span><span>En reparto</span><span>Entregado</span></div>`}
+    ${eta}
+  </button>`;
+}
+function pintar(){
+  const ps = datos.pedidos || [];
+  const camino = ps.filter(p => !terminado(p)), fin = ps.filter(terminado);
+  $('#nCamino').textContent = camino.length || '';
+  $('#nEntregados').textContent = fin.length || '';
+  const orden = { out_for_delivery:0, failed_attempt:1, available_for_pickup:2, exception:3, in_transit:4, info_received:5, pending:6, delivered:7 };
+  let html = '';
+  if (datos.revisado) html += `<p class="revisado">Revisado ${hace(datos.revisado)} · se revisa solo cada 15 min</p>`;
+  if (tab === 'camino'){
+    camino.sort((a,b) => (orden[a.estado] ?? 9) - (orden[b.estado] ?? 9) || b.creado - a.creado);
+    html += camino.length ? camino.map(tarjeta).join('') : vacio(!cfg.url
+      ? ['Conecta la app', 'Abre Ajustes y pon la dirección del script y tu contraseña.']
+      : ['Nada en camino', 'Cuando compres algo, añade su número de seguimiento y aquí verás cada paso del paquete.']);
+  } else {
+    const ent = fin.filter(p => !p.archivado).sort((a,b) => (b.entregadoEn||b.actualizado||0) - (a.entregadoEn||a.actualizado||0));
+    const arc = fin.filter(p => p.archivado);
+    html += ent.length ? ent.map(tarjeta).join('') : (arc.length ? '' : vacio(['Aún no hay entregas', 'Aquí verás los pedidos que ya te han llegado.']));
+    if (arc.length) html += `<div class="sec-t">Archivados</div>` + arc.map(tarjeta).join('');
+  }
+  $('#lista').innerHTML = html;
+}
+function vacio([t, s]){ return `<div class="vacio">${ico('i-caja')}<b>${t}</b>${s}</div>`; }
+
+/* ---------- Ficha ---------- */
+function pintarFicha(){
+  const p = (datos.pedidos || []).find(x => x.id === abierto);
+  if (!p) { cerrar(); return; }
+  const e = est(p.estado), col = `var(${e.c})`;
+  $('#fNom').textContent = p.nombre;
+  const evs = p.eventos || [];
+  const cour = (p.couriers || []).map(courier).join(' → ') || 'Detectando…';
+  $('#fCuerpo').innerHTML = `
+    <div class="f-cab">
+      <span class="pill" style="color:${col};background:color-mix(in srgb,${col} 13%,transparent)"><i></i>${e.t}</span>
+      ${p.estado === 'failed_attempt' ? '<div class="aviso">El repartidor no te ha encontrado. Mira el último movimiento: suele decir si lo intentará otra vez o lo deja en un punto de recogida.</div>' : ''}
+      ${p.estado === 'available_for_pickup' ? '<div class="aviso">Ya puedes recogerlo. El último movimiento indica dónde.</div>' : ''}
+      <div class="f-num"><span>${esc(p.numero)}</span><button class="mini" id="bCopiar">${ico('i-copiar')}</button></div>
+    </div>
+    <div class="datos">
+      <div class="dato"><small>Transporte</small><b>${esc(cour)}</b></div>
+      <div class="dato"><small>${p.estado === 'delivered' ? 'Entregado' : 'Llegada estimada'}</small><b>${p.estado === 'delivered' ? esc(fecha(evs[0] && evs[0].fecha) || '—') : esc(p.estimada ? fecha(p.estimada).replace(/ · .*/, '') : 'Sin fecha')}</b></div>
+      <div class="dato"><small>Tienda</small><b>${esc(p.tienda || '—')}</b></div>
+      <div class="dato"><small>Comprobado</small><b>${esc(hace(p.actualizado) || '—')}</b></div>
+    </div>
+    <div class="linea" style="--c:${col}">
+      ${evs.length ? evs.map((v, i) => `<div class="ev ${i === 0 ? 'prim-ev' : ''}"><b>${esc(v.texto)}</b><small>${esc([fecha(v.fecha), v.lugar].filter(Boolean).join(' · '))}</small></div>`).join('')
+        : '<div class="ev prim-ev"><b>Esperando el primer movimiento</b><small>La empresa de transporte aún no ha publicado datos. Aparecerán aquí solos.</small></div>'}
+    </div>
+    ${p.errorUltimo ? `<p class="ayuda peligro">Última revisión con error: ${esc(errorTxt({error:p.errorUltimo}))}</p>` : ''}
+    <a class="sec" style="display:flex;justify-content:center;gap:8px;text-decoration:none;color:inherit" href="https://www.ship24.com/tracking?p=${encodeURIComponent(p.numero)}" target="_blank" rel="noopener">${ico('i-web')}Ver en Ship24</a>
+    <div class="fila2">
+      <button class="sec" id="bEditar">Editar</button>
+      <button class="sec" id="bArch">${p.archivado ? 'Desarchivar' : 'Archivar'}</button>
+    </div>
+    <button class="sec peligro" id="bBorrar">Borrar pedido</button>`;
+  $('#bCopiar').onclick = () => navigator.clipboard.writeText(p.numero).then(() => toast('Número copiado'), () => toast('No se ha podido copiar'));
+  $('#bEditar').onclick = () => { $('#eNom').value = p.nombre; $('#eTienda').value = p.tienda || ''; abrir('hEditar', true); };
+  $('#bArch').onclick = () => accion('editar', { id:p.id, archivado:!p.archivado }, p.archivado ? 'Vuelve a la lista' : 'Archivado').then(ok => ok && cerrar());
+  $('#bBorrar').onclick = () => { if (confirm(`¿Borrar «${p.nombre}»? Dejará de seguirse.`)) accion('borrar', { id:p.id }, 'Borrado').then(ok => ok && cerrar()); };
+}
+async function accion(nombre, extra, ok){
+  punto('va');
+  try{ await api(nombre, extra); punto('ok'); if (ok) toast(ok); return true; }
+  catch(e){ punto('mal'); toast(errorTxt(e)); return false; }
+}
+
+/* ---------- Hojas ---------- */
+let pila = [];
+function abrir(id, encima){
+  if (!encima) pila.forEach(h => $('#' + h).classList.remove('on')), pila = [];
+  else if (pila.length) $('#' + pila[pila.length-1]).classList.remove('on');
+  pila.push(id);
+  $('#velo').classList.add('on'); $('#' + id).classList.add('on');
+}
+function cerrar(){
+  const id = pila.pop(); if (id) $('#' + id).classList.remove('on');
+  if (id === 'hFicha') abierto = null;
+  if (pila.length) $('#' + pila[pila.length-1]).classList.add('on');
+  else { $('#velo').classList.remove('on'); abierto = null; }
+}
+document.querySelectorAll('[data-cerrar]').forEach(b => b.onclick = cerrar);
+$('#velo').onclick = () => { while (pila.length) cerrar(); };
+
+/* ---------- Eventos ---------- */
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => {
+  tab = b.dataset.tab; document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x === b)); pintar(); scrollTo(0, 0);
+});
+$('#lista').onclick = ev => { const c = ev.target.closest('.card'); if (c){ abierto = c.dataset.id; pintarFicha(); abrir('hFicha'); } };
+$('#bAct').onclick = actualizarAhora;
+$('#bAjus').onclick = () => { $('#sUrl').value = cfg.url; $('#sClave').value = cfg.clave; abrir('hAjus'); };
+$('#bAnadir').onclick = () => {
+  if (!cfg.url) { toast('Primero conecta la app en Ajustes'); return $('#bAjus').onclick(); }
+  ['#aNum','#aNom','#aTienda'].forEach(s => $(s).value = '');
+  const mes = new Date(); mes.setDate(1); mes.setHours(0,0,0,0);
+  const usados = (datos.altas || []).filter(t => t >= +mes).length;
+  $('#aCupo').textContent = `La empresa de transporte se detecta sola. Este mes llevas ${usados} de 10 envíos gratis de Ship24.`;
+  abrir('hAnadir'); setTimeout(() => $('#aNum').focus(), 300);
+};
+$('#bPegar').onclick = async () => { try{ const t = await navigator.clipboard.readText(); $('#aNum').value = t.trim().replace(/\s+/g,''); }catch(e){ toast('Mantén pulsado el campo y elige Pegar'); } };
+$('#bGuardar').onclick = async () => {
+  const numero = $('#aNum').value.trim().replace(/\s+/g, '');
+  if (numero.length < 5) return toast('Escribe el número de seguimiento');
+  const b = $('#bGuardar'); b.disabled = true; b.textContent = 'Buscando el paquete…';
+  const ok = await accion('anadir', { numero, nombre: $('#aNom').value, tienda: $('#aTienda').value }, 'Pedido añadido');
+  b.disabled = false; b.textContent = 'Empezar a seguir';
+  if (ok){ cerrar(); tab = 'camino'; document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x.dataset.tab === 'camino')); pintar(); }
+};
+$('#bGuardarEd').onclick = async () => { if (await accion('editar', { id: abierto, nombre: $('#eNom').value, tienda: $('#eTienda').value }, 'Guardado')) cerrar(); };
+$('#bConectar').onclick = async () => {
+  cfg = { url: $('#sUrl').value.trim(), clave: $('#sClave').value }; LS.set('mp-cfg', cfg);
+  $('#sEstado').textContent = 'Conectando…'; punto('va');
+  try{ await api('leer'); punto('ok'); $('#sEstado').textContent = `Conectado. ${(datos.pedidos||[]).length} pedidos.`; toast('Conectado'); }
+  catch(e){ punto('mal'); $('#sEstado').textContent = errorTxt(e); }
+};
+$('#sVer').textContent = `Mis pedidos ${VERSION} · los datos se guardan en tu Google Drive.`;
+
+/* ---------- Arranque ---------- */
+pintar();
+if (cfg.url) $('#sEstado').textContent = 'Conectado.';
+sincronizar();
+document.addEventListener('visibilitychange', () => { if (!document.hidden) sincronizar(); });
+setInterval(() => { if (!document.hidden) sincronizar(); }, 60000);
+setInterval(() => { if (!document.hidden && !pila.length) pintar(); }, 30000);
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
