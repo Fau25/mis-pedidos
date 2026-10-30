@@ -1,7 +1,7 @@
 // Mis pedidos · service worker
-const CACHE = 'mis-pedidos-v11';
+const CACHE = 'mis-pedidos-v12';
 const FUENTES = 'mis-pedidos-fuentes';
-const BASE = ['./', 'index.html', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
+const BASE = ['./', 'index.html', 'figtree.woff2', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
   // cache:'reload' → baja los archivos nuevos de verdad, sin usar la copia de 10 min de GitHub
@@ -36,6 +36,10 @@ self.addEventListener('fetch', e => {
 
   if (url.origin !== location.origin) return;                 // el script de Google va siempre a la red
   if (url.pathname.endsWith('version.json')) return;          // la comprobación de versión, siempre a la red
+  if (url.pathname.endsWith('.woff2')) {                      // la letra no cambia: primero la copia
+    e.respondWith(caches.match(e.request).then(c => c || fetch(e.request)));
+    return;
+  }
 
   // Red primero (sin la copia de 10 min del navegador); si tarda más de 2,5 s o no hay red, la copia guardada
   e.respondWith((async () => {

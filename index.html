@@ -13,10 +13,10 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" href="figtree.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* Tipografía incluida en la app: sin descargas externas ni saltos al abrir */
+@font-face{font-family:"Figtree";src:url("figtree.woff2") format("woff2");font-weight:300 900;font-style:normal;font-display:block}
 /* Fondo cálido, tarjetas blancas muy redondeadas, píldoras. Violeta donde la referencia usa negro.
    Lista con columna de fechas a la izquierda y barra de navegación flotante abajo. */
 :root{
@@ -344,7 +344,7 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
 
 <script>
 'use strict';
-const VERSION = 'v11';
+const VERSION = 'v12';
 const $ = s => document.querySelector(s);
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
@@ -420,14 +420,23 @@ async function sincronizar(){
     ultimoError = t;
   }
 }
-async function actualizarAhora(){
-  if (!cfg.url) return abrir('hAjus');
+async function actualizarAhora(silencioso){
+  if (!cfg.url) { if (!silencioso) abrir('hAjus'); return; }
+  if (silencioso && pausa) return;
   const b = $('#bAct'); if (b.classList.contains('girando')) return;
-  b.classList.add('girando'); ocupado = true; punto('va');
-  try{ await api('actualizar'); punto('ok'); toast('Actualizado'); }
-  catch(e){ punto('mal'); toast(errorTxt(e)); }
+  b.classList.add('girando'); ocupado = true; ultimoRefresco = Date.now();
+  try{ await api('actualizar'); punto('ok'); ultimoError = ''; if (!silencioso) toast('Actualizado'); }
+  catch(e){
+    punto('mal'); const t = errorTxt(e);
+    if (['clave','bloqueado','sin-clave'].includes(e.error)) { pausa = true; $('#red').textContent = t + ' Revísalo en Ajustes.'; }
+    if (!silencioso || (e.error !== 'red' && t !== ultimoError)) toast(t);
+    ultimoError = t;
+  }
   finally{ b.classList.remove('girando'); ocupado = false; }
 }
+// Al abrir la app (o volver a ella) se pregunta a Ship24 por todos los pedidos al momento
+let ultimoRefresco = 0;
+function alAbrir(){ pintarCabecera(); if (Date.now() - ultimoRefresco > 30000) actualizarAhora(true); else sincronizar(); }
 
 /* ---------- Utilidades ---------- */
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -789,8 +798,9 @@ document.querySelectorAll('.hoja').forEach(h => {
 pintar();
 $('#sEstado').textContent = cfg.url ? 'Comprobando la conexión…' : 'Sin conectar.';
 pintarAvisos();
-sincronizar();
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { pintarCabecera(); sincronizar(); } });
+alAbrir();
+document.addEventListener('visibilitychange', () => { if (!document.hidden) alAbrir(); });
+addEventListener('pageshow', e => { if (e.persisted) alAbrir(); });
 setInterval(() => { if (!document.hidden) sincronizar(); }, 60000);
 setInterval(() => { if (!document.hidden) pintarCabecera(); }, 30000);
 let diaPintado = new Date().getDate();
