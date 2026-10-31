@@ -1,5 +1,5 @@
 'use strict';
-const VERSION = 'v14';
+const VERSION = 'v15';
 const $ = s => document.querySelector(s);
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
@@ -152,9 +152,40 @@ function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.togg
 const terminado = p => p.archivado || p.estado === 'delivered';
 function diaDe(iso){ const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(local(iso) || ''); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null; }
 function hoy0(){ const d = new Date(); d.setHours(0,0,0,0); return d; }
+/* ---------- Día de llegada ----------
+   1) la fecha que pongas tú en Editar; 2) la que da Ship24; 3) la que venga escrita en un movimiento
+   («entrega prevista 03/11», «fecha estimada de entrega: 03-11-2026», «se entregará el 3 de noviembre»…). */
+const MESES_LARGOS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function fechaEnTexto(t, ref){
+  // Solo cuenta la fecha que va DETRÁS de una frase de entrega prevista (no la de «llegada a delegación 28/10»)
+  const clave = /(entrega\s+(prevista|estimada|programada)|(prevista|estimada|programada)\s+(de\s+)?entrega|fecha\s+(prevista|estimada)(\s+de\s+entrega)?|se\s+entregar[áa]|entregar[áa]\s+el|reparto\s+previsto|estimated\s+delivery|expected\s+delivery|delivery\s+date)/i;
+  const k = clave.exec(t); if (!k) return '';
+  const resto = t.slice(k.index + k[0].length, k.index + k[0].length + 45);
+  const base = ref ? new Date(ref) : new Date();
+  const iso = (a, m, d) => {
+    if (!(m >= 1 && m <= 12 && d >= 1 && d <= 31)) return '';
+    let y = a ? (a < 100 ? 2000 + a : a) : base.getFullYear();
+    if (!a && new Date(y, m - 1, d) < new Date(base.getFullYear(), base.getMonth(), base.getDate() - 7)) y++;  // «03/01» visto en diciembre → año siguiente
+    return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  };
+  let m = /(\d{4})-(\d{2})-(\d{2})/.exec(resto);
+  if (m) return iso(+m[1], +m[2], +m[3]);
+  m = /\b(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{2,4}))?\b/.exec(resto);
+  if (m) return iso(m[3] ? +m[3] : 0, +m[2], +m[1]);
+  m = new RegExp('\\b(\\d{1,2})\\s+de\\s+(' + MESES_LARGOS.join('|') + ')(?:\\s+de\\s+(\\d{4}))?', 'i').exec(resto);
+  if (m) return iso(m[3] ? +m[3] : 0, MESES_LARGOS.indexOf(m[2].toLowerCase()) + 1, +m[1]);
+  return '';
+}
+function llegadaDe(p){
+  if (p.llegadaManual) return { iso: p.llegadaManual, origen: 'tuya' };
+  if (p.estimada) return { iso: p.estimada, origen: 'ship24' };
+  for (const ev of (p.eventos || [])) { const f = fechaEnTexto(ev.texto || '', local(ev.fecha) || undefined); if (f) return { iso: f, origen: 'movimiento' }; }
+  return { iso: '', origen: '' };
+}
+const llegada = p => llegadaDe(p).iso;
 function retrasado(p){
-  if (['delivered','available_for_pickup','exception'].includes(p.estado) || !p.estimada) return false;
-  const d = diaDe(p.estimada); return !!d && d < hoy0();
+  if (['delivered','available_for_pickup','exception'].includes(p.estado) || !llegada(p)) return false;
+  const d = diaDe(llegada(p)); return !!d && d < hoy0();
 }
 function quieto(p){
   if (!['pending','info_received'].includes(p.estado) || p.archivado) return false;
@@ -177,7 +208,7 @@ function ruta(p, e, corta){
   const bolaIco = fin ? 'i-ok' : e.i;
   return `<div class="ruta">
       <div><small>${esc(ini ? corto(ini.fecha) : corto(new Date(p.creado||Date.now()).toISOString()))}</small><b>${esc(ciudad(ini && ini.lugar) || p.tienda || 'Origen')}</b></div>
-      <div><small>${esc(corta ? (fin ? 'Entregado' : 'Llegada') : fin ? corto(ult && ult.fecha) : p.estado === 'available_for_pickup' ? 'Listo para recoger' : p.estimada ? (retrasado(p) ? 'Debía llegar ' : 'Llega ') + corto(p.estimada).toLowerCase() : 'Sin fecha')}</small><b>${esc(fin ? (ciudad(ult && ult.lugar) || 'Entregado') : p.estado === 'available_for_pickup' ? 'Recoger' : 'Tu casa')}</b></div>
+      <div><small>${esc(corta ? (fin ? 'Entregado' : 'Llegada') : fin ? corto(ult && ult.fecha) : p.estado === 'available_for_pickup' ? 'Listo para recoger' : llegada(p) ? (retrasado(p) ? 'Debía llegar ' : 'Llega ') + corto(llegada(p)).toLowerCase() : 'Sin fecha')}</small><b>${esc(fin ? (ciudad(ult && ult.lugar) || 'Entregado') : p.estado === 'available_for_pickup' ? 'Recoger' : 'Tu casa')}</b></div>
     </div>
     <div class="barra" style="--c:var(${e.c})">
       <i class="hecho" style="width:calc((100% - 16px) * ${pct/100})"></i>
@@ -203,7 +234,7 @@ function sello(p){
   }
   if (p.estado === 'available_for_pickup') return html('verde', 'para', 'Ya', 'recoger', true);
   if (p.estado === 'out_for_delivery') return html('', 'reparto', 'Hoy', 'llega', true);
-  const d = fechaDe(p.estimada);
+  const d = fechaDe(llegada(p));
   if (!d) return html('suave', 'llegada', '—', 'sin fecha', true);
   const dif = Math.round((d - hoy0()) / 864e5);
   if (retrasado(p)) return html('coral', 'debía', d.getDate(), MES[d.getMonth()]);
@@ -267,7 +298,7 @@ function pintarFicha(){
       ${ruta(p, e)}
       ${p.estado === 'failed_attempt' ? '<div class="aviso">El repartidor no te ha encontrado. Mira el último movimiento: suele decir si lo intentará otra vez o lo deja en un punto de recogida.</div>' : ''}
       ${p.estado === 'available_for_pickup' ? '<div class="aviso">Ya puedes recogerlo. El último movimiento indica dónde.</div>' : ''}
-      ${retrasado(p) ? `<div class="aviso">Tenía que llegar ${esc(corto(p.estimada).toLowerCase())} y aún no consta como entregado. Si sigue así, consulta con la tienda.</div>` : ''}
+      ${retrasado(p) ? `<div class="aviso">Tenía que llegar ${esc(corto(llegada(p)).toLowerCase())} y aún no consta como entregado. Si sigue así, consulta con la tienda.</div>` : ''}
       ${quieto(p) ? `<div class="aviso">Lleva más de 2 días sin movimientos. Puede que la empresa aún no lo haya recogido o que no se haya detectado bien el transportista.<br><button class="btn-aviso" id="bTransF2">Elegir transportista</button></div>` : ''}
     </div>
     <div class="linea morada">
@@ -283,7 +314,7 @@ function pintarFicha(){
     <div class="dB">
       <div><small>Transporte</small><b>${esc(cour)}</b></div>
       <div><small>Tienda</small><b>${esc(p.tienda || '—')}</b></div>
-      <div><small>${p.estado === 'delivered' ? 'Entregado' : 'Llegada estimada'}</small><b>${p.estado === 'delivered' ? esc(fecha(evs[0] && evs[0].fecha) || '—') : esc(p.estimada ? corto(p.estimada) : 'Sin fecha')}</b></div>
+      <div><small>${p.estado === 'delivered' ? 'Entregado' : { tuya:'Llegada (puesta por ti)', ship24:'Llegada estimada', movimiento:'Llegada prevista', '':'Llegada estimada' }[llegadaDe(p).origen]}</small><b>${p.estado === 'delivered' ? esc(fecha(evs[0] && evs[0].fecha) || '—') : esc(llegada(p) ? corto(llegada(p)) : 'Sin fecha')}</b></div>
       <div><small>Comprobado</small><b>${esc(hace(p.actualizado) || '—')}</b></div>
     </div>
     ${p.errorUltimo ? `<p class="ayuda peligro">Última revisión con error: ${esc(errorTxt({error:p.errorUltimo}))}</p>` : ''}
@@ -297,7 +328,12 @@ function pintarFicha(){
   const abrirT = () => abrirTrans(p.id);
   $('#bTransF').onclick = abrirT; if ($('#bTransF2')) $('#bTransF2').onclick = abrirT;
   $('#bCopiar').onclick = () => navigator.clipboard.writeText(p.numero).then(() => toast('Número copiado'), () => toast('No se ha podido copiar'));
-  $('#bEditar').onclick = () => { $('#eNom').value = p.nombre; $('#eTienda').value = p.tienda || ''; abrir('hEditar', true); };
+  $('#bEditar').onclick = () => {
+    $('#eNom').value = p.nombre; $('#eTienda').value = p.tienda || ''; $('#eLlegada').value = p.llegadaManual || '';
+    const auto = p.estimada || (llegadaDe(Object.assign({}, p, { llegadaManual: '' })).iso);
+    $('#eLlegadaAyuda').textContent = auto ? `Sin poner nada se usa la que da el transportista: ${corto(auto).toLowerCase()}.` : 'Ship24 no da fecha para este pedido. Si la ves en la web del transportista, ponla aquí.';
+    abrir('hEditar', true);
+  };
   $('#bArch').onclick = () => accion('editar', { id:p.id, archivado:!p.archivado }, p.archivado ? 'Vuelve a la lista' : 'Archivado').then(ok => ok && cerrar());
   $('#bBorrar').onclick = () => confirmar(`¿Borrar «${p.nombre}»?`, 'Dejará de seguirse y desaparecerá de la lista. No se puede deshacer.', 'Borrar pedido',
     async () => { if (await accion('borrar', { id:p.id }, 'Borrado')) { while (pila.length) cerrar(); } });
@@ -378,7 +414,8 @@ $('#bGuardar').onclick = async () => {
   b.disabled = false; b.textContent = 'Empezar a seguir';
   if (ok){ cerrar(); tab = 'camino'; document.querySelectorAll('.nav button[data-tab]').forEach(x => { x.classList.toggle('on', x.dataset.tab === 'camino'); x.setAttribute('aria-selected', x.dataset.tab === 'camino'); }); pintar(); }
 };
-$('#bGuardarEd').onclick = async () => { if (await accion('editar', { id: abierto, nombre: $('#eNom').value, tienda: $('#eTienda').value }, 'Guardado')) cerrar(); };
+$('#bGuardarEd').onclick = async () => { if (await accion('editar', { id: abierto, nombre: $('#eNom').value, tienda: $('#eTienda').value, llegada: $('#eLlegada').value }, 'Guardado')) cerrar(); };
+$('#bQuitarLlegada').onclick = () => { $('#eLlegada').value = ''; };
 $('#bConectar').onclick = async () => {
   const nuevo = $('#sUrl').value.trim();
   if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(nuevo) && !/^http:\/\/localhost[:/]/.test(nuevo)) { $('#sEstado').textContent = ERRORES['url-mala']; return; }
