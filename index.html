@@ -10,237 +10,16 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Mis pedidos">
 <title>Mis pedidos</title>
+<meta name="description" content="Seguimiento personal de los paquetes que me tienen que llegar.">
+<meta name="robots" content="noindex, nofollow">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <link rel="preload" href="figtree.woff2" as="font" type="font/woff2" crossorigin>
-<style>
-/* Tipografía incluida en la app: sin descargas externas ni saltos al abrir */
-@font-face{font-family:"Figtree";src:url("figtree.woff2") format("woff2");font-weight:300 900;font-style:normal;font-display:block}
-/* Fondo cálido, tarjetas blancas muy redondeadas, píldoras. Violeta donde la referencia usa negro.
-   Lista con columna de fechas a la izquierda y barra de navegación flotante abajo. */
-:root{
-  --bg:#E8E4DE; --card:#FFFFFF; --ink:#17161A; --ink2:#8A857E; --ink3:#B9B3AA; --line:#E7E2DA; --soft:#F3F0EB;
-  --acc:#3D1FE0; --acc-soft:#ECE8FD; --on-acc:#FFFFFF;
-  --coral:#E3876A; --on-coral:#2A140C; --morado:#3D1FE0;
-  --st-pend:#A39D94; --st-tran:#3D1FE0; --st-rep:#3D1FE0; --st-rec:#8B3FE0; --st-ok:#4CA36B; --st-err:#D9614A;
-  --shadow:0 1px 2px rgba(40,32,20,.04),0 6px 18px rgba(40,32,20,.05);
-  --shadow-btn:0 1px 2px rgba(40,32,20,.05),0 4px 12px rgba(40,32,20,.06);
-  --r:26px; --safe-b:0px; --safe-t:0px;
-  --f:"Figtree",system-ui,-apple-system,sans-serif;
-}
-@media (prefers-color-scheme: dark){
-  :root{ --bg:#141312; --card:#211F1D; --ink:#F3F0EB; --ink2:#9B958C; --ink3:#5F5A53; --line:#2E2B28; --soft:#2B2825;
-    --acc:#8F7DFF; --acc-soft:#2A2550; --on-acc:#120F26;
-    --coral:#E58A6E; --on-coral:#2A140C; --morado:#4A35E6;
-    --st-pend:#8D877E; --st-tran:#8F7DFF; --st-rep:#8F7DFF; --st-rec:#B894FF; --st-ok:#62C285; --st-err:#F07A62;
-    --shadow:none; --shadow-btn:none; color-scheme:dark }
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-[hidden]{display:none!important}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:16px;-webkit-font-smoothing:antialiased}
-body{min-height:100dvh;overflow-x:hidden}
-button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0;touch-action:manipulation}
-a{touch-action:manipulation}
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-input{font:inherit;color:var(--ink)}
-svg{display:block}
-.ico{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-
-/* Cabecera */
-header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:16px 20px 10px}
-.top{display:flex;align-items:center;gap:10px;max-width:640px;margin:0 auto}
-.titulo{flex:1;min-width:0;font-weight:500;font-size:clamp(26px,8.2vw,34px);letter-spacing:-.8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pild{height:48px;flex:none;max-width:132px;display:flex;align-items:center;gap:7px;padding:0 16px;border-radius:26px;background:var(--card);box-shadow:var(--shadow-btn);font-weight:500;font-size:15px;white-space:nowrap}
-.pild .ico{width:18px;height:18px;flex:none}
-.pild span{overflow:hidden;text-overflow:ellipsis}
-.redondo{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--acc);color:var(--on-acc);flex:none;box-shadow:0 8px 20px color-mix(in srgb,var(--acc) 35%,transparent)}
-.redondo .ico{width:24px;height:24px;stroke-width:1.9}
-.pild:active,.redondo:active{transform:scale(.95)}
-.girando .ico{animation:gira .9s linear infinite}
-@keyframes gira{to{transform:rotate(360deg)}}
-.red-txt{max-width:640px;overflow-wrap:anywhere;margin:8px auto 0;font-size:13px;font-weight:600;color:var(--st-err);padding:0 2px}
-
-/* Fila de selectores (como los días) */
-.chips{display:flex;gap:8px;overflow-x:auto;margin:4px -20px 14px;padding:2px 20px 4px;scrollbar-width:none}
-.chips::-webkit-scrollbar{display:none}
-.chip{flex:none;min-width:74px;padding:11px 12px 12px;border-radius:24px;background:var(--card);text-align:center;box-shadow:var(--shadow-btn)}
-.chip small{display:block;font-size:12.5px;color:var(--ink2)}
-.chip b{display:block;font-size:24px;font-weight:600;letter-spacing:-.5px;margin:1px 0 0;font-variant-numeric:tabular-nums}
-.chip.on{background:var(--acc);color:var(--on-acc)}
-.chip.on small{color:color-mix(in srgb,var(--on-acc) 75%,transparent)}
-.chip.aviso-c b{color:var(--st-err)} .chip.aviso-c.on b{color:var(--on-acc)}
-
-main{max-width:640px;margin:0 auto;padding:6px 16px 120px}
-
-/* Lista con columna de fecha */
-.fila{margin-bottom:12px}
-.cuando{padding-top:16px;font-variant-numeric:tabular-nums}
-.cuando b{display:block;font-size:19px;font-weight:500;letter-spacing:-.3px;line-height:1.1}
-.cuando small{display:block;font-size:13px;color:var(--ink2);margin-top:3px}
-.cuando.tarde b{color:var(--st-err)}
-.card{background:var(--card);border-radius:var(--r);padding:14px 16px 14px 14px;box-shadow:var(--shadow);width:100%;text-align:left;display:block;min-width:0}
-.card:active{transform:scale(.99)}
-.c-top{display:flex;align-items:center;gap:12px}
-.burb{width:46px;height:46px;border-radius:50%;background:var(--soft);display:grid;place-items:center;flex:none;color:var(--ink)}
-.burb .ico{width:21px;height:21px}
-.c-main{flex:1;min-width:0}
-.c-nom{font-weight:600;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.c-sub{font-size:14px;color:var(--ink2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.c-pie{display:flex;align-items:center;gap:10px;margin-top:12px;min-width:0}
-.c-pie .est{flex:none}
-.c-pie .c-donde{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:6px;font-size:14px;color:var(--ink2);white-space:nowrap;overflow:hidden}
-.c-pie .c-donde span{overflow:hidden;text-overflow:ellipsis}
-.c-pie .c-donde .ico{width:16px;height:16px;flex:none}
-.est{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 12px;border-radius:15px;font-size:14px;font-weight:500;white-space:nowrap;background:var(--soft);color:var(--ink)}
-.est i{width:8px;height:8px;border-radius:50%;background:var(--dot,var(--st-pend))}
-.est.lleno{background:var(--acc);color:var(--on-acc)} .est.lleno i{display:none}
-.est.coral{background:var(--coral);color:var(--on-coral)} .est.coral i{display:none}
-.card.fin .c-nom{color:var(--ink2)}
-.mini-ruta .ruta{margin-top:14px}
-.mini-ruta .ruta b{font-size:15px}
-.mini-ruta .barra{height:38px;margin-top:6px}
-.mini-ruta .barra .bola{width:38px;height:38px;margin:-19px 0 0 -19px}
-.mini-ruta .barra .bola .ico{width:18px;height:18px}
-.card.fin .ruta b{color:var(--ink2)}
-.sello{flex:none;width:60px;border-radius:18px;background:var(--acc);color:var(--on-acc);text-align:center;padding:6px 2px 7px;line-height:1.05}
-.sello b{display:block;font-size:24px;font-weight:600;letter-spacing:-.5px;white-space:nowrap}
-.sello small{display:block;font-size:11.5px;opacity:.85;white-space:nowrap}
-.sello.coral{background:var(--coral);color:var(--on-coral)}
-.sello.suave{background:var(--soft);color:var(--ink)}
-.sello.suave small{color:var(--ink2);opacity:1}
-.sello.verde{background:var(--st-ok);color:#fff}
-.sello b.txt{font-size:19px;padding:3px 0 2px}
-.nuevo{display:flex;align-items:center;gap:10px;width:100%;padding:18px 20px;border-radius:var(--r);border:1.5px dashed var(--ink3);color:var(--ink2);font-size:15px;font-weight:500;text-align:left}
-.nuevo .ico{width:18px;height:18px}
-
-.vacio{text-align:center;color:var(--ink2);padding:52px 24px;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);line-height:1.45}
-.vacio .ico{width:52px;height:52px;margin:0 auto 14px;stroke-width:1.3;color:var(--acc)}
-.vacio b{display:block;color:var(--ink);font-size:18px;font-weight:600;margin-bottom:6px}
-.sec-t{font-size:15px;font-weight:600;color:var(--ink2);margin:24px 2px 12px}
-
-/* Barra de navegación flotante */
-.nav{position:fixed;left:16px;right:16px;bottom:16px;z-index:6;max-width:600px;margin:0 auto;height:72px;
-  background:var(--card);border-radius:36px;box-shadow:0 10px 30px rgba(40,32,20,.12);display:flex;align-items:center;justify-content:space-around;padding:0 10px}
-.nav button{height:52px;min-width:56px;border-radius:26px;flex:none;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ink);position:relative;padding:0 14px}
-.nav button .ico{width:23px;height:23px}
-.nav button.on{background:var(--acc);color:var(--on-acc);padding:0 20px}
-.nav button .lbl{display:none;font-weight:500;font-size:15.5px;white-space:nowrap}
-.nav button.on .lbl{display:inline}
-.nav .marca{position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--coral)}
-.nav button.on .marca{display:none}
-
-/* Hojas */
-.velo{position:fixed;inset:0;background:rgba(23,22,26,.3);z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
-.velo.on{opacity:1;pointer-events:auto}
-.hoja{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--bg);border-radius:32px 32px 0 0;
-  max-height:calc(100dvh - var(--safe-t) - 24px);overflow:auto;-webkit-overflow-scrolling:touch;transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1);
-  padding:8px 18px 28px;max-width:640px;margin:0 auto;overscroll-behavior:contain}
-.hoja.on{transform:none}
-.hoja.arrastrando{transition:none}
-.asa{width:40px;height:5px;border-radius:3px;background:var(--ink3);opacity:.6;margin:4px auto 12px}
-.h-top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.h-top h2{flex:1;margin:0;font-size:28px;font-weight:500;letter-spacing:-.6px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.btn-ico{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:var(--ink);background:var(--card);box-shadow:var(--shadow-btn);flex:none}
-.btn-ico .ico{width:20px;height:20px}
-label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px 6px 7px}
-.campo{display:flex;align-items:center;background:var(--card);border:1.5px solid transparent;border-radius:22px;padding:0 8px 0 18px;box-shadow:var(--shadow-btn)}
-.campo:focus-within{border-color:var(--acc)}
-.campo input{flex:1;border:0;background:none;outline:0;padding:16px 0;min-width:0;font-size:16px;font-weight:500}
-.campo input::placeholder{color:var(--ink3);font-weight:400}
-.mini{font-size:14px;font-weight:600;color:var(--acc);padding:8px 12px;border-radius:14px}
-.ayuda{font-size:13.5px;color:var(--ink2);margin:10px 6px 0;line-height:1.45}
-.prim{width:100%;margin-top:22px;background:var(--acc);color:var(--on-acc);font-weight:600;padding:18px;border-radius:30px;font-size:16px}
-.prim:disabled{opacity:.55}
-.sec{width:100%;margin-top:10px;background:var(--card);font-weight:500;padding:16px;border-radius:30px;box-shadow:var(--shadow-btn)}
-.peligro{color:var(--st-err)}
-.fila2{display:flex;gap:10px}.fila2>*{flex:1}
-.sel{width:100%;display:flex;align-items:center;gap:10px;background:var(--card);border-radius:22px;padding:16px 14px 16px 18px;box-shadow:var(--shadow-btn);text-align:left;font-weight:500}
-.sel span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sel .ico{width:18px;height:18px;color:var(--ink2)}
-.t-lista{list-style:none;margin:14px 0 0;padding:0;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
-.t-lista li+li{border-top:1px solid var(--line)}
-.t-lista button{width:100%;display:flex;align-items:center;gap:10px;padding:16px 18px;text-align:left;font-weight:500}
-.t-lista button span{flex:1;min-width:0}
-.t-lista button small{color:var(--ink2);font-size:12.5px}
-.t-lista button.on{color:var(--acc);font-weight:600}
-.t-grupo{font-size:14px;font-weight:600;color:var(--ink2);margin:18px 6px 0}
-
-/* Ficha */
-.f-cab{background:var(--card);border-radius:var(--r);padding:16px 16px 18px;box-shadow:var(--shadow)}
-.f-copiar{display:inline-flex;align-items:center;gap:5px;min-width:0;max-width:55%;overflow:hidden;white-space:nowrap;font-size:13px;color:var(--ink2);margin:12px 0 0 2px;font-variant-numeric:tabular-nums}
-.f-copiar .ico{width:15px;height:15px;flex:none}
-.f-copiar span{min-width:0;overflow:hidden;text-overflow:ellipsis}
-.ruta{display:flex;justify-content:space-between;gap:12px;margin-top:16px}
-.ruta>div{min-width:0}
-.ruta>div:last-child{text-align:right}
-.ruta small{display:block;font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
-.ruta b{display:block;font-size:16px;font-weight:600;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.barra{position:relative;height:46px;margin-top:10px}
-.barra:before{content:"";position:absolute;left:8px;right:8px;top:50%;height:2px;margin-top:-1px;background:var(--line)}
-.barra .hecho{position:absolute;left:8px;top:50%;height:2px;margin-top:-1px;background:var(--c)}
-.barra .pt{position:absolute;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--ink3)}
-.barra .pt.a{left:2px} .barra .pt.b{right:2px}
-.barra .pt.on{background:var(--c)}
-.barra .bola{position:absolute;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;display:grid;place-items:center;
-  background:var(--c);color:var(--on-acc);box-shadow:0 6px 16px color-mix(in srgb,var(--c) 35%,transparent);transition:left .5s cubic-bezier(.2,.8,.2,1)}
-.barra .bola .ico{width:21px;height:21px}
-.datos{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.dato{background:var(--card);border-radius:22px;padding:14px 16px;box-shadow:var(--shadow)}
-.dato small{display:block;font-size:12.5px;color:var(--ink2)}
-.dato b{font-size:15.5px;font-weight:600;display:block;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.linea{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:20px 16px 4px;margin-top:12px}
-.ev{display:grid;grid-template-columns:minmax(74px,28%) 22px 1fr;column-gap:12px;position:relative;padding-bottom:22px}
-.ev-f{text-align:left;font-variant-numeric:tabular-nums}
-.ev-f b{display:block;font-size:15px;font-weight:500}
-.ev-f small{display:block;font-size:12.5px;color:var(--ink2);margin-top:2px}
-.ev-p{position:relative;display:flex;justify-content:center}
-.ev-p:before{content:"";width:12px;height:12px;border-radius:50%;background:var(--ink3);margin-top:4px;position:relative;z-index:1}
-.ev:not(:last-child) .ev-p:after{content:"";position:absolute;top:10px;bottom:-28px;width:2px;background:var(--line)}
-.ev.prim-ev .ev-p:before{background:var(--c);box-shadow:0 0 0 5px color-mix(in srgb,var(--c) 18%,transparent)}
-.ev-t b{display:block;font-size:15px;font-weight:600;line-height:1.3}
-.ev-t small{display:block;color:var(--ink2);font-size:13px;margin-top:3px}
-.linea.morada{background:var(--morado);box-shadow:0 10px 24px color-mix(in srgb,var(--morado) 28%,transparent)}
-.linea.morada .ev-f b,.linea.morada .ev-t b{color:#fff}
-.linea.morada .ev-f small,.linea.morada .ev-t small{color:rgba(255,255,255,.72)}
-.linea.morada .ev-p:before{background:rgba(255,255,255,.45)}
-.linea.morada .ev:not(:last-child) .ev-p:after{background:rgba(255,255,255,.28)}
-.linea.morada .ev.prim-ev .ev-p:before{background:#fff;box-shadow:0 0 0 5px rgba(255,255,255,.25)}
-.dB{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin:16px 6px 0}
-.dB div{padding:12px 0 12px 14px;border-left:2px solid var(--acc);min-width:0}
-.dB div:nth-child(2n){margin-left:10px}
-.dB small{display:block;font-size:12.5px;color:var(--ink2)}
-.dB b{display:block;font-size:16px;font-weight:600;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.acciones{display:flex;justify-content:space-between;margin-top:20px;padding:0 2px}
-.acciones>*{display:flex;flex-direction:column;align-items:center;gap:7px;width:64px;color:var(--ink);text-decoration:none}
-.acciones .circ{width:54px;height:54px;border-radius:50%;background:var(--card);display:grid;place-items:center;box-shadow:var(--shadow-btn)}
-.acciones .circ .ico{width:21px;height:21px}
-.acciones small{font-size:12px;color:var(--ink2);white-space:nowrap}
-.acciones>*:active .circ{transform:scale(.93)}
-.acciones .borrar .circ{background:var(--coral);color:var(--on-coral)}
-.aviso{background:var(--soft);color:var(--ink);border-radius:20px;padding:13px 16px;font-size:14.5px;line-height:1.45;margin-top:14px}
-.btn-aviso{display:inline-block;margin-top:10px;background:var(--acc);color:var(--on-acc);font-weight:600;font-size:14px;padding:10px 16px;border-radius:20px}
-
-.ptr{position:fixed;left:50%;top:84px;z-index:4;width:42px;height:42px;margin-left:-21px;border-radius:50%;background:var(--card);
-  box-shadow:var(--shadow-btn);display:grid;place-items:center;color:var(--acc);opacity:0;transform:translateY(-30px);pointer-events:none}
-.ptr .ico{width:20px;height:20px}
-.toast{position:fixed;left:50%;bottom:104px;transform:translate(-50%,20px);z-index:40;
-  background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:20px;font-weight:500;font-size:14.5px;
-  opacity:0;pointer-events:none;transition:.25s;max-width:calc(100% - 32px);text-align:center}
-.toast.on{opacity:1;transform:translate(-50%,0)}
-.nueva{position:fixed;left:16px;right:16px;bottom:104px;z-index:30;max-width:560px;margin:0 auto;display:flex;align-items:center;gap:12px;
-  background:var(--ink);color:var(--bg);border-radius:24px;padding:10px 10px 10px 18px;font-weight:500;font-size:14.5px}
-.nueva span{flex:1}
-.nueva button{background:var(--acc);color:var(--on-acc);font-weight:600;padding:10px 16px;border-radius:18px}
-@media (min-width:700px){ .hoja{bottom:auto;top:50%;border-radius:32px;transform:translateY(-40%) scale(.98);opacity:0;pointer-events:none;transition:.22s}
-  .hoja.on{transform:translateY(-50%);opacity:1;pointer-events:auto} .asa{display:none} }
-@media (max-width:360px){ .pild span{display:none} .pild{padding:0 15px} .nav button.on{padding:0 16px} .nav button .lbl span{display:none} }
-@media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
-</style>
+<link rel="stylesheet" href="estilos.css">
 </head>
 <body>
+<noscript><p style="padding:24px;font:16px system-ui">Mis pedidos necesita JavaScript activado para funcionar.</p></noscript>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-caja" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8M7.5 5.5l9 5"/></symbol>
@@ -265,7 +44,7 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
 
 <header>
   <div class="top">
-    <div class="titulo" id="titulo">Pedidos</div>
+    <h1 class="titulo" id="titulo">Pedidos</h1>
     <button class="pild" id="bAct" aria-label="Actualizar ahora"><svg class="ico"><use href="#i-act"/></svg><span id="revTxt">Actualizar</span></button>
     <button class="redondo" id="bAnadir" aria-label="Añadir pedido"><svg class="ico"><use href="#i-mas"/></svg></button>
   </div>
@@ -284,7 +63,7 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
 <div class="velo" id="velo"></div>
 
 <!-- Añadir -->
-<section class="hoja" id="hAnadir" aria-label="Añadir pedido">
+<section class="hoja" id="hAnadir" role="dialog" aria-modal="true" aria-label="Añadir pedido">
   <div class="asa"></div>
   <div class="h-top"><h2>Nuevo pedido</h2><button class="btn-ico" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-x"/></svg></button></div>
   <label for="aNum">Número de seguimiento</label>
@@ -300,14 +79,14 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
 </section>
 
 <!-- Ficha -->
-<section class="hoja" id="hFicha" aria-label="Detalle del pedido">
+<section class="hoja" id="hFicha" role="dialog" aria-modal="true" aria-label="Detalle del pedido">
   <div class="asa"></div>
   <div class="h-top"><h2 id="fNom">Seguimiento</h2><button class="btn-ico" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-x"/></svg></button></div>
   <div id="fCuerpo"></div>
 </section>
 
 <!-- Transportista -->
-<section class="hoja" id="hTrans" aria-label="Elegir transportista">
+<section class="hoja" id="hTrans" role="dialog" aria-modal="true" aria-label="Elegir transportista">
   <div class="asa"></div>
   <div class="h-top"><h2>Transportista</h2><button class="btn-ico" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-x"/></svg></button></div>
   <div class="campo"><input id="tBus" type="search" autocomplete="off" spellcheck="false" placeholder="Buscar: Nacex, MRW, Correos Express…"></div>
@@ -315,7 +94,7 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
 </section>
 
 <!-- Editar -->
-<section class="hoja" id="hEditar" aria-label="Editar pedido">
+<section class="hoja" id="hEditar" role="dialog" aria-modal="true" aria-label="Editar pedido">
   <div class="asa"></div>
   <div class="h-top"><h2>Editar</h2><button class="btn-ico" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-x"/></svg></button></div>
   <label for="eNom">¿Qué es?</label>
@@ -326,7 +105,7 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
 </section>
 
 <!-- Ajustes -->
-<section class="hoja" id="hAjus" aria-label="Ajustes">
+<section class="hoja" id="hAjus" role="dialog" aria-modal="true" aria-label="Ajustes">
   <div class="asa"></div>
   <div class="h-top"><h2>Ajustes</h2><button class="btn-ico" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-x"/></svg></button></div>
   <label for="sUrl">Dirección del script de Google</label>
@@ -339,499 +118,18 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
   <p class="ayuda" id="sVer"></p>
 </section>
 
+<!-- Confirmación -->
+<section class="hoja" id="hConf" role="alertdialog" aria-modal="true" aria-labelledby="cTit" aria-describedby="cTxt">
+  <div class="asa"></div>
+  <h2 class="conf-t" id="cTit"></h2>
+  <p class="ayuda conf-p" id="cTxt"></p>
+  <button class="prim peligro-lleno" id="cSi">Borrar</button>
+  <button class="prim secundario" id="cNo">Cancelar</button>
+</section>
+
 <div class="toast" id="toast" role="status"></div>
 <div class="nueva" id="nueva" hidden><span>Hay una versión nueva de la app.</span><button id="bRecargar">Actualizar</button></div>
 
-<script>
-'use strict';
-const VERSION = 'v13';
-const $ = s => document.querySelector(s);
-const LS = {
-  get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
-  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
-};
-let cfg = LS.get('mp-cfg', { url:'', clave:'' });
-let datos = LS.get('mp-datos', { pedidos: [] });
-let tab = 'camino', filtro = 'todos', abierto = null, ocupado = false, transA = null, transDestino = null;
-
-/* ---------- Estados ---------- */
-const EST = {
-  pending:{t:'Pendiente', c:'--st-pend', i:'i-reloj', p:0},
-  info_received:{t:'Preparando', c:'--st-pend', i:'i-caja', p:1},
-  in_transit:{t:'En tránsito', c:'--st-tran', i:'i-camion', p:2},
-  out_for_delivery:{t:'En reparto', c:'--st-rep', i:'i-camion', p:3},
-  failed_attempt:{t:'Intento fallido', c:'--st-err', i:'i-alerta', p:3},
-  available_for_pickup:{t:'Para recoger', c:'--st-rec', i:'i-tienda', p:3},
-  delivered:{t:'Entregado', c:'--st-ok', i:'i-ok', p:4},
-  exception:{t:'Incidencia', c:'--st-err', i:'i-alerta', p:2}
-};
-const est = e => EST[e] || EST.pending;
-const ERRORES = {
-  clave:'Contraseña incorrecta.', bloqueado:'Demasiados intentos. Espera 10 minutos.',
-  'sin-clave':'Falta la contraseña en el script: escríbela en la línea 9 (MI_CLAVE) y haz una implementación nueva.',
-  'sin-ship24':'Falta la clave de Ship24 en el script: escríbela en la línea 10 (MI_SHIP24) y haz una implementación nueva.',
-  courier:'Elige un transportista.', 'no-existe':'Ese pedido ya no existe.',
-  'ship24-clave':'Ship24 no acepta la clave. Revísala en el script.',
-  'ship24-cupo':'Se han acabado los envíos gratis de este mes en Ship24.',
-  'ship24-espera':'Ship24 pide esperar un momento. Prueba en un minuto.',
-  ship24:'Ship24 no ha podido buscar ese número.', numero:'Ese número no parece válido.',
-  repetido:'Ese pedido ya está en la lista.', red:'Sin conexión.', 'no-url':'Pon la dirección del script en Ajustes.'
-};
-
-/* ---------- Conexión ---------- */
-async function api(accion, extra){
-  if (!cfg.url) throw { error:'no-url' };
-  let r;
-  try{
-    const res = await fetch(cfg.url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(Object.assign({ accion, clave: cfg.clave }, extra || {})) });
-    r = await res.json();
-  }catch(e){ throw { error:'red' }; }
-  if (r.datos) ponerDatos(r.datos);
-  if (!r.ok) throw r;
-  return r;
-}
-let ultimoJSON = JSON.stringify(datos);
-function ponerDatos(d){
-  if (d.t && datos.t && d.t < datos.t) return;   // respuesta antigua: no pisar datos más nuevos
-  const j = JSON.stringify(d);
-  if (j === ultimoJSON) { pintarCabecera(); return; }   // nada nuevo: no repintar (evita toques perdidos)
-  ultimoJSON = j; datos = d; LS.set('mp-datos', d); pintar(); if (abierto) pintarFicha(); pintarAvisos();
-}
-function pintarCabecera(){
-  $('#revTxt').textContent = datos.revisado ? hace(datos.revisado).replace('ahora mismo', 'Al día').replace('hace ', '') : 'Actualizar';
-}
-function punto(c){
-  const r = $('#red'); $('#marcaAjus').hidden = c !== 'mal';
-  if (c === 'mal') { r.textContent = cfg.url ? 'Sin conexión con tu script. Se reintenta solo.' : 'App sin conectar: ve a Ajustes.'; r.hidden = false; }
-  else if (c === 'ok') r.hidden = true;
-}
-function errorTxt(e){ return (e && ERRORES[e.error]) || 'Algo ha fallado' + (e && e.detalle ? ': ' + e.detalle : '.'); }
-
-let pausa = false, ultimoError = '';
-async function sincronizar(){
-  if (!cfg.url || ocupado || pausa) { if (!cfg.url) punto('mal'); return; }
-  try{ await api('leer'); punto('ok'); ultimoError = ''; $('#sEstado').textContent = `Conectado · ${(datos.pedidos||[]).length} pedidos.`; }
-  catch(e){
-    punto('mal'); const t = errorTxt(e); $('#sEstado').textContent = t;
-    // Con la contraseña mal no se reintenta solo (si no, acabaría bloqueando el script)
-    if (['clave','bloqueado','sin-clave'].includes(e.error)) { pausa = true; $('#red').textContent = t + ' Revísalo en Ajustes.'; }
-    if (e.error !== 'red' && t !== ultimoError) toast(t);
-    ultimoError = t;
-  }
-}
-async function actualizarAhora(silencioso){
-  if (!cfg.url) { if (!silencioso) abrir('hAjus'); return; }
-  if (silencioso && pausa) return;
-  const b = $('#bAct'); if (b.classList.contains('girando')) return;
-  b.classList.add('girando'); ocupado = true; ultimoRefresco = Date.now();
-  try{ await api('actualizar'); punto('ok'); ultimoError = ''; if (!silencioso) toast('Actualizado'); }
-  catch(e){
-    punto('mal'); const t = errorTxt(e);
-    if (['clave','bloqueado','sin-clave'].includes(e.error)) { pausa = true; $('#red').textContent = t + ' Revísalo en Ajustes.'; }
-    if (!silencioso || (e.error !== 'red' && t !== ultimoError)) toast(t);
-    ultimoError = t;
-  }
-  finally{ b.classList.remove('girando'); ocupado = false; }
-}
-// Al abrir la app (o volver a ella) se pregunta a Ship24 por todos los pedidos al momento
-let ultimoRefresco = 0;
-function alAbrir(){ pintarCabecera(); if (Date.now() - ultimoRefresco > 30000) actualizarAhora(true); else sincronizar(); }
-
-/* ---------- Utilidades ---------- */
-const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-const DIAS = ['dom','lun','mar','mié','jue','vie','sáb'];
-function local(iso){
-  if (!iso || !/(Z|[+-]\d\d:?\d\d)$/.test(iso)) return iso;   // con zona horaria → hora de aquí
-  const d = new Date(iso); if (isNaN(d)) return iso;
-  const p = n => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
-}
-function fecha(iso){
-  if (!iso) return '';
-  iso = local(iso);
-  const m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/.exec(iso);
-  if (!m) return iso;
-  const d = new Date(+m[1], +m[2]-1, +m[3]);
-  const hoy = new Date(); hoy.setHours(0,0,0,0);
-  const dif = Math.round((d - hoy) / 864e5);
-  const dia = dif === 0 ? 'Hoy' : dif === -1 ? 'Ayer' : dif === 1 ? 'Mañana' : `${DIAS[d.getDay()]} ${+m[3]} ${MESES[+m[2]-1]}`;
-  return dia + (m[4] ? ` · ${m[4]}:${m[5]}` : '');
-}
-function hace(ms){
-  if (!ms) return '';
-  const s = (Date.now() - ms) / 1000;
-  if (s < 90) return 'ahora mismo';
-  if (s < 3600) return `hace ${Math.round(s/60)} min`;
-  if (s < 86400) return `hace ${Math.round(s/3600)} h`;
-  return `hace ${Math.round(s/86400)} d`;
-}
-function courier(c){
-  if (!c) return '';
-  const fijos = { nacex:'Nacex', correos:'Correos', seur:'SEUR', gls:'GLS', mrw:'MRW', dhl:'DHL', ups:'UPS', ctt:'CTT', dpd:'DPD', tnt:'TNT', fedex:'FedEx', amazon:'Amazon', 'correos-express':'Correos Express', inpost:'InPost', celeritas:'Celeritas', 'tipsa':'Tipsa', 'envialia':'Envialia', cainiao:'Cainiao', 'zeleris':'Zeleris' };
-  const k = c.toLowerCase();
-  if (fijos[k]) return fijos[k];
-  if (/correos-?express/.test(k)) return 'Correos Express';
-  const partes = k.split(/[-_]/);
-  for (const f in fijos) if (partes.includes(f)) return fijos[f];
-  return k.split(/[-_]/).filter(w => !/^(es|eu|int|global|api)$/.test(w)).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || c;
-}
-const ico = (id, cls) => `<svg class="ico ${cls||''}"><use href="#${id}"/></svg>`;
-function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2600); }
-const terminado = p => p.archivado || p.estado === 'delivered';
-function diaDe(iso){ const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(local(iso) || ''); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null; }
-function hoy0(){ const d = new Date(); d.setHours(0,0,0,0); return d; }
-function retrasado(p){
-  if (['delivered','available_for_pickup','exception'].includes(p.estado) || !p.estimada) return false;
-  const d = diaDe(p.estimada); return !!d && d < hoy0();
-}
-function quieto(p){
-  if (!['pending','info_received'].includes(p.estado) || p.archivado) return false;
-  const ult = (p.eventos || [])[0], t = ult && Date.parse(ult.fecha);
-  return Date.now() - Math.max(t || 0, p.creado || 0) > 48 * 3600e3;
-}
-function vista(p){
-  const e = est(p.estado);
-  return retrasado(p) ? Object.assign({}, e, { t:'Retrasado', c:'--st-err' }) : e;
-}
-
-/* ---------- Lista ---------- */
-const PCT = [6, 25, 50, 75, 100];
-function corto(iso){ const f = fecha(iso); return f.replace(/ · .*/, ''); }
-function ciudad(l){ return String(l || '').split(/[,·\-–(]/)[0].trim(); }
-function ruta(p, e, corta){
-  const evs = p.eventos || [], ini = evs[evs.length-1], ult = evs[0];
-  const fin = p.estado === 'delivered';
-  const pct = fin ? 100 : PCT[e.p] || 6;
-  const bolaIco = fin ? 'i-ok' : e.i;
-  return `<div class="ruta">
-      <div><small>${esc(ini ? corto(ini.fecha) : corto(new Date(p.creado||Date.now()).toISOString()))}</small><b>${esc(ciudad(ini && ini.lugar) || p.tienda || 'Origen')}</b></div>
-      <div><small>${esc(corta ? (fin ? 'Entregado' : 'Llegada') : fin ? corto(ult && ult.fecha) : p.estado === 'available_for_pickup' ? 'Listo para recoger' : p.estimada ? (retrasado(p) ? 'Debía llegar ' : 'Llega ') + corto(p.estimada).toLowerCase() : 'Sin fecha')}</small><b>${esc(fin ? (ciudad(ult && ult.lugar) || 'Entregado') : p.estado === 'available_for_pickup' ? 'Recoger' : 'Tu casa')}</b></div>
-    </div>
-    <div class="barra" style="--c:var(${e.c})">
-      <i class="hecho" style="width:calc((100% - 16px) * ${pct/100})"></i>
-      <i class="pt a on"></i><i class="pt b ${fin ? 'on' : ''}"></i>
-      <span class="bola" style="left:calc(8px + (100% - 16px) * ${pct/100})">${ico(bolaIco)}</span>
-    </div>`;
-}
-function estChip(p){
-  const e = vista(p);
-  if (retrasado(p) || ['failed_attempt','exception'].includes(p.estado)) return `<span class="est coral">${esc(e.t)}</span>`;
-  if (p.estado === 'delivered') return `<span class="est lleno">${esc(e.t)}</span>`;
-  const dot = { out_for_delivery:'var(--acc)', in_transit:'color-mix(in srgb,var(--acc) 55%,var(--card))', available_for_pickup:'var(--st-ok)' }[p.estado] || 'var(--st-pend)';
-  return `<span class="est" style="--dot:${dot}"><i></i>${esc(e.t)}</span>`;
-}
-function cuando(p){
-  const evs = p.eventos || [];
-  if (p.estado === 'delivered'){ const f = evs[0] && evs[0].fecha; return { b: f ? corto(f) : '—', s: 'llegó' }; }
-  if (p.estado === 'available_for_pickup') return { b: 'Ya', s: 'recoger' };
-  if (p.estado === 'out_for_delivery') return { b: 'Hoy', s: 'en reparto' };
-  if (p.estimada) return { b: corto(p.estimada), s: retrasado(p) ? 'retraso' : 'llega', tarde: retrasado(p) };
-  return { b: '—', s: 'sin fecha' };
-}
-function sello(p){
-  const MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  const DIA = ['dom','lun','mar','mié','jue','vie','sáb'];
-  const html = (cls, a, b, c, txt) => `<div class="sello ${cls}" aria-label="${esc([a, b, c].join(' '))}"><small>${esc(a)}</small><b class="${txt ? 'txt' : ''}">${esc(b)}</b><small>${esc(c)}</small></div>`;
-  const fechaDe = iso => { const d = diaDe(iso); return d ? d : null; };
-  if (p.estado === 'delivered'){
-    const d = fechaDe((p.eventos || [])[0] && p.eventos[0].fecha);
-    return d ? html('suave', 'llegó', d.getDate(), MES[d.getMonth()]) : html('suave', 'llegó', '✓', '', true);
-  }
-  if (p.estado === 'available_for_pickup') return html('verde', 'para', 'Ya', 'recoger', true);
-  if (p.estado === 'out_for_delivery') return html('', 'reparto', 'Hoy', 'llega', true);
-  const d = fechaDe(p.estimada);
-  if (!d) return html('suave', 'llegada', '—', 'sin fecha', true);
-  const dif = Math.round((d - hoy0()) / 864e5);
-  if (retrasado(p)) return html('coral', 'debía', d.getDate(), MES[d.getMonth()]);
-  if (dif === 0) return html('', 'llega', 'Hoy', MES[d.getMonth()] + ' ' + d.getDate(), true);
-  if (dif === 1) return html('', 'mañana', d.getDate(), MES[d.getMonth()]);
-  return html('', DIA[d.getDay()], d.getDate(), MES[d.getMonth()]);
-}
-function partir(t){ const m = /^(\S+) (\d+) (\S+)$/.exec(t); return m ? `${m[2]} ${m[3]}` : t; }
-function tarjeta(p){
-  const e = vista(p), ev = (p.eventos || [])[0];
-  const cour = (p.couriers || []).map(courier).join(' → ');
-  const sub = [cour, p.tienda].filter(Boolean).join(' · ') || p.numero;
-  const donde = quieto(p) ? 'Sin movimiento desde ' + (ev ? corto(ev.fecha).toLowerCase() : 'que lo añadiste')
-    : (ev && (ciudad(ev.lugar) || ev.texto)) || 'Esperando datos';
-  return `<div class="fila">
-    <button class="card ${terminado(p) ? 'fin' : ''}" data-id="${esc(p.id)}">
-      <div class="c-top"><span class="burb" style="color:var(${e.c})">${ico(p.estado === 'delivered' ? 'i-ok' : e.i)}</span>
-        <div class="c-main"><div class="c-nom">${esc(p.nombre)}</div><div class="c-sub">${esc(sub)}</div></div>${sello(p)}</div>
-      <div class="c-pie">${estChip(p)}<span class="c-donde" style="${quieto(p) ? 'color:var(--st-err)' : ''}">${ico(quieto(p) ? 'i-reloj' : 'i-pin')}<span>${esc(donde)}</span></span></div>
-      <div class="mini-ruta">${ruta(p, e, true)}</div>
-    </button>
-  </div>`;
-}
-const FILTROS = [
-  ['todos', 'Todos', p => true],
-  ['hoy', 'Hoy', p => p.estado === 'out_for_delivery' || (p.estimada && diaDe(p.estimada) && +diaDe(p.estimada) === +hoy0())],
-  ['camino', 'En camino', p => ['in_transit','info_received','pending'].includes(p.estado) && !retrasado(p)],
-  ['recoger', 'Recoger', p => p.estado === 'available_for_pickup'],
-  ['avisos', 'Avisos', p => retrasado(p) || quieto(p) || ['failed_attempt','exception'].includes(p.estado)]
-];
-function pintar(){
-  const ps = datos.pedidos || [];
-  const camino = ps.filter(p => !terminado(p)), fin = ps.filter(terminado);
-  $('#nCamino').textContent = camino.length ? ` · ${camino.length}` : '';
-  $('#nEntregados').textContent = fin.length ? ` · ${fin.length}` : '';
-  pintarCabecera();
-  $('#titulo').textContent = tab === 'camino' ? 'Pedidos' : 'Entregados';
-  const orden = { out_for_delivery:0, failed_attempt:1, available_for_pickup:2, exception:3, in_transit:4, info_received:5, pending:6, delivered:7 };
-  let html = '';
-  if (tab === 'camino'){
-    const f = FILTROS.find(x => x[0] === filtro) || FILTROS[0];
-    const lista = camino.filter(f[2]).sort((a,b) => (orden[a.estado] ?? 9) - (orden[b.estado] ?? 9) || b.creado - a.creado);
-    html += lista.length ? lista.map(tarjeta).join('') : camino.length ? '<p class="ayuda">Ningún pedido con este filtro.</p>' : vacio(!cfg.url
-      ? ['Conecta la app', 'Abre Ajustes y pon la dirección del script y tu contraseña.']
-      : ['Nada en camino', 'Cuando compres algo, añade su número de seguimiento y aquí verás cada paso del paquete.']);
-    if (cfg.url) html += `<div class="fila"><button class="nuevo" id="bNuevo">${ico('i-mas')}Añadir otro pedido</button></div>`;
-  } else {
-    const ent = fin.filter(p => !p.archivado).sort((a,b) => (b.entregadoEn||b.actualizado||0) - (a.entregadoEn||a.actualizado||0));
-    const arc = fin.filter(p => p.archivado);
-    html += ent.length ? ent.map(tarjeta).join('') : (arc.length ? '' : vacio(['Aún no hay entregas', 'Aquí verás los pedidos que ya te han llegado. Los de más de 30 días se borran solos.']));
-    if (arc.length) html += `<div class="sec-t">Archivados</div>` + arc.map(tarjeta).join('');
-  }
-  $('#lista').innerHTML = html;
-}
-function vacio([t, s]){ return `<div class="vacio">${ico('i-caja')}<b>${t}</b>${s}</div>`; }
-
-/* ---------- Ficha ---------- */
-function pintarFicha(){
-  const p = (datos.pedidos || []).find(x => x.id === abierto);
-  if (!p) { cerrar(); return; }
-  const e = vista(p), col = `var(${e.c})`;
-  $('#fNom').textContent = 'Seguimiento';
-  const evs = p.eventos || [];
-  const cour = (p.couriers || []).map(courier).join(' → ') || 'Detectando…';
-  $('#fCuerpo').innerHTML = `
-    <div class="f-cab">
-      <div class="c-top"><span class="burb" style="color:${col}">${ico(p.estado === 'delivered' ? 'i-ok' : e.i)}</span>
-        <div class="c-main"><div class="c-nom">${esc(p.nombre)}</div><div class="c-sub">${esc([cour, p.tienda].filter(Boolean).join(' · '))}</div></div>${sello(p)}</div>
-      <div class="c-pie">${estChip(p)}<button class="f-copiar" id="bCopiar" aria-label="Copiar número" style="margin:0 0 0 auto"><span>${esc(p.numero)}</span>${ico('i-copiar')}</button></div>
-      ${ruta(p, e)}
-      ${p.estado === 'failed_attempt' ? '<div class="aviso">El repartidor no te ha encontrado. Mira el último movimiento: suele decir si lo intentará otra vez o lo deja en un punto de recogida.</div>' : ''}
-      ${p.estado === 'available_for_pickup' ? '<div class="aviso">Ya puedes recogerlo. El último movimiento indica dónde.</div>' : ''}
-      ${retrasado(p) ? `<div class="aviso">Tenía que llegar ${esc(corto(p.estimada).toLowerCase())} y aún no consta como entregado. Si sigue así, consulta con la tienda.</div>` : ''}
-      ${quieto(p) ? `<div class="aviso">Lleva más de 2 días sin movimientos. Puede que la empresa aún no lo haya recogido o que no se haya detectado bien el transportista.<br><button class="btn-aviso" id="bTransF2">Elegir transportista</button></div>` : ''}
-    </div>
-    <div class="linea morada">
-      ${evs.length ? evs.map((v, i) => {
-          const m = /T(\d{2}):(\d{2})/.exec(local(v.fecha) || '');
-          return `<div class="ev ${i === 0 ? 'prim-ev' : ''}">
-            <div class="ev-f"><b>${esc(corto(v.fecha) || '—')}</b>${m ? `<small>${m[1]}:${m[2]}</small>` : ''}</div>
-            <div class="ev-p"></div>
-            <div class="ev-t"><b>${esc(v.texto)}</b>${v.lugar ? `<small>${esc(v.lugar)}</small>` : ''}</div>
-          </div>`; }).join('')
-        : '<div class="ev prim-ev"><div class="ev-f"><b>Ahora</b></div><div class="ev-p"></div><div class="ev-t"><b>Esperando el primer movimiento</b><small>La empresa de transporte aún no ha publicado datos. Aparecerán aquí solos.</small></div></div>'}
-    </div>
-    <div class="dB">
-      <div><small>Transporte</small><b>${esc(cour)}</b></div>
-      <div><small>Tienda</small><b>${esc(p.tienda || '—')}</b></div>
-      <div><small>${p.estado === 'delivered' ? 'Entregado' : 'Llegada estimada'}</small><b>${p.estado === 'delivered' ? esc(fecha(evs[0] && evs[0].fecha) || '—') : esc(p.estimada ? corto(p.estimada) : 'Sin fecha')}</b></div>
-      <div><small>Comprobado</small><b>${esc(hace(p.actualizado) || '—')}</b></div>
-    </div>
-    ${p.errorUltimo ? `<p class="ayuda peligro">Última revisión con error: ${esc(errorTxt({error:p.errorUltimo}))}</p>` : ''}
-    <div class="acciones">
-      <a href="https://www.ship24.com/tracking?p=${encodeURIComponent(p.numero)}" target="_blank" rel="noopener"><span class="circ">${ico('i-web')}</span><small>Ship24</small></a>
-      <button id="bEditar"><span class="circ">${ico('i-edit')}</span><small>Editar</small></button>
-      <button id="bArch"><span class="circ">${ico('i-arch')}</span><small>${p.archivado ? 'Recuperar' : 'Archivar'}</small></button>
-      <button id="bTransF"><span class="circ">${ico('i-swap')}</span><small>Transportista</small></button>
-      <button id="bBorrar" class="borrar"><span class="circ">${ico('i-trash')}</span><small>Borrar</small></button>
-    </div>`;
-  const abrirT = () => abrirTrans(p.id);
-  $('#bTransF').onclick = abrirT; if ($('#bTransF2')) $('#bTransF2').onclick = abrirT;
-  $('#bCopiar').onclick = () => navigator.clipboard.writeText(p.numero).then(() => toast('Número copiado'), () => toast('No se ha podido copiar'));
-  $('#bEditar').onclick = () => { $('#eNom').value = p.nombre; $('#eTienda').value = p.tienda || ''; abrir('hEditar', true); };
-  $('#bArch').onclick = () => accion('editar', { id:p.id, archivado:!p.archivado }, p.archivado ? 'Vuelve a la lista' : 'Archivado').then(ok => ok && cerrar());
-  $('#bBorrar').onclick = () => { if (confirm(`¿Borrar «${p.nombre}»? Dejará de seguirse.`)) accion('borrar', { id:p.id }, 'Borrado').then(ok => ok && cerrar()); };
-}
-async function accion(nombre, extra, ok){
-  ocupado = true; punto('va');
-  try{ await api(nombre, extra); punto('ok'); if (ok) toast(ok); return true; }
-  catch(e){ if (e.error === 'red') punto('mal'); toast(errorTxt(e)); return false; }
-  finally{ ocupado = false; }
-}
-
-/* ---------- Hojas ---------- */
-let pila = [];
-function abrir(id, encima){
-  if (!encima) pila.forEach(h => $('#' + h).classList.remove('on')), pila = [];
-  else if (pila.length) $('#' + pila[pila.length-1]).classList.remove('on');
-  pila.push(id);
-  $('#velo').classList.add('on'); $('#' + id).classList.add('on');
-}
-function cerrar(){
-  const id = pila.pop(); if (id) $('#' + id).classList.remove('on');
-  if (id === 'hFicha') abierto = null;
-  if (pila.length) $('#' + pila[pila.length-1]).classList.add('on');
-  else { $('#velo').classList.remove('on'); abierto = null; }
-}
-document.querySelectorAll('[data-cerrar]').forEach(b => b.onclick = cerrar);
-$('#velo').onclick = () => { while (pila.length) cerrar(); };
-
-/* ---------- Eventos ---------- */
-document.querySelectorAll('.nav button[data-tab]').forEach(b => b.onclick = () => {
-  tab = b.dataset.tab; document.querySelectorAll('.nav button[data-tab]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b); }); pintar(); scrollTo(0, 0);
-});
-$('#lista').onclick = ev => {
-  const ch = ev.target.closest('.chip'); if (ch){ filtro = ch.dataset.f; pintar(); return; }
-  if (ev.target.closest('#bNuevo')) return $('#bAnadir').onclick();
-  const c = ev.target.closest('.card'); if (c){ abierto = c.dataset.id; pintarFicha(); abrir('hFicha'); }
-};
-$('#bAct').onclick = actualizarAhora;
-$('#bAjus').onclick = () => { $('#sUrl').value = cfg.url; $('#sClave').value = cfg.clave; abrir('hAjus'); };
-$('#bAnadir').onclick = () => {
-  if (!cfg.url) { toast('Primero conecta la app en Ajustes'); return $('#bAjus').onclick(); }
-  ['#aNum','#aNom','#aTienda'].forEach(s => $(s).value = '');
-  transA = null; $('#aTrans').textContent = 'Automático (recomendado)';
-  const mes = new Date(); mes.setDate(1); mes.setHours(0,0,0,0);
-  const usados = (datos.altas || []).filter(t => t >= +mes).length;
-  $('#aCupo').textContent = `Este mes llevas ${usados} ${usados === 1 ? 'pedido nuevo' : 'pedidos nuevos'}. El plan gratis de Ship24 incluye 10 al mes (100 el primer mes).`;
-  abrir('hAnadir'); setTimeout(() => $('#aNum').focus(), 300);
-};
-$('#bPegar').onclick = async () => { try{ const t = await navigator.clipboard.readText(); $('#aNum').value = t.trim().replace(/\s+/g,''); }catch(e){ toast('Mantén pulsado el campo y elige Pegar'); } };
-$('#bGuardar').onclick = async () => {
-  const numero = $('#aNum').value.trim().replace(/\s+/g, '');
-  if (numero.length < 5) return toast('Escribe el número de seguimiento');
-  const b = $('#bGuardar'); b.disabled = true; b.textContent = 'Buscando el paquete…';
-  const ok = await accion('anadir', { numero, nombre: $('#aNom').value, tienda: $('#aTienda').value, courier: transA ? transA.c : '' }, 'Pedido añadido');
-  b.disabled = false; b.textContent = 'Empezar a seguir';
-  if (ok){ cerrar(); tab = 'camino'; document.querySelectorAll('.nav button[data-tab]').forEach(x => { x.classList.toggle('on', x.dataset.tab === 'camino'); x.setAttribute('aria-selected', x.dataset.tab === 'camino'); }); pintar(); }
-};
-$('#bGuardarEd').onclick = async () => { if (await accion('editar', { id: abierto, nombre: $('#eNom').value, tienda: $('#eTienda').value }, 'Guardado')) cerrar(); };
-$('#bConectar').onclick = async () => {
-  const nuevo = $('#sUrl').value.trim();
-  if (nuevo !== cfg.url) { datos = { pedidos: [] }; ultimoJSON = ''; LS.set('mp-datos', datos); }   // otro script: empezar de cero
-  cfg = { url: nuevo, clave: $('#sClave').value }; LS.set('mp-cfg', cfg); pausa = false; ultimoError = '';
-  $('#sEstado').textContent = 'Conectando…'; punto('va');
-  try{ await api('leer'); punto('ok'); $('#sEstado').textContent = `Conectado · ${(datos.pedidos||[]).length} pedidos.`; toast('Conectado'); }
-  catch(e){ punto('mal'); $('#sEstado').textContent = errorTxt(e); }
-};
-$('#sVer').textContent = `Mis pedidos ${VERSION} · los datos se guardan en tu Google Drive.`;
-
-/* ---------- Avisos al momento ---------- */
-function pintarAvisos(){
-  $('#sAvisos').textContent = datos.ultimoAviso
-    ? `Avisos al momento de Ship24 activos. Último: ${hace(datos.ultimoAviso)}.`
-    : 'Avisos al momento de Ship24: aún no ha llegado ninguno. Si no los has activado, mira el LEEME. Mientras tanto, la app revisa cada 15 minutos.';
-}
-
-/* ---------- Transportista ---------- */
-const HABITUALES = /nacex|correos|seur|gls|mrw|ctt|dhl|ups|dpd|tipsa|envialia|zeleris|inpost|celeritas|amazon|paack|sending|tnt|fedex|redyser|cbl|halcourier|genei|cainiao|yunexpress|4px|spring|asendia|packlink|uber|glovo|stuart|tourline|asm/i;
-const sinTildes = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-let listaCour = LS.get('mp-couriers', null);
-async function cargarCouriers(){
-  if (listaCour && listaCour.l && listaCour.l.length && Date.now() - listaCour.t < 30 * 864e5) return listaCour.l;
-  const r = await api('couriers');
-  listaCour = { t: Date.now(), l: r.couriers || [] }; LS.set('mp-couriers', listaCour);
-  return listaCour.l;
-}
-async function abrirTrans(destino){
-  transDestino = destino; $('#tBus').value = '';
-  $('#tCuerpo').innerHTML = '<p class="ayuda">Cargando transportistas…</p>';
-  abrir('hTrans', true);
-  try{ await cargarCouriers(); pintarTrans(); }
-  catch(e){ $('#tCuerpo').innerHTML = `<p class="ayuda peligro">${esc(errorTxt(e))}</p>`; }
-}
-function pintarTrans(){
-  const q = sinTildes($('#tBus').value.trim());
-  const l = (listaCour && listaCour.l) || [];
-  const actual = transDestino === 'anadir' ? (transA && transA.c) : ((datos.pedidos||[]).find(x => x.id === transDestino) || {}).courierElegido;
-  const item = c => `<li><button data-c="${esc(c.c)}" data-n="${esc(c.n)}" class="${c.c === actual ? 'on' : ''}"><span>${esc(c.n)}</span><small>${esc(c.c)}</small></button></li>`;
-  let html = '';
-  if (transDestino === 'anadir' && !q) html += `<ul class="t-lista"><li><button data-c="" data-n="" class="${!actual ? 'on' : ''}"><span>Automático (recomendado)</span></button></li></ul>`;
-  if (q){
-    const res = l.filter(c => sinTildes(c.n).includes(q) || sinTildes(c.c).includes(q)).slice(0, 60);
-    html += res.length ? `<ul class="t-lista">${res.map(item).join('')}</ul>` : '<p class="ayuda">No hay ningún transportista con ese nombre.</p>';
-  } else {
-    const hab = l.filter(c => HABITUALES.test(c.n) || HABITUALES.test(c.c)).sort((a,b) => a.n.localeCompare(b.n, 'es'));
-    html += `<p class="t-grupo">Habituales en España</p><ul class="t-lista">${hab.slice(0, 80).map(item).join('')}</ul>`;
-    html += `<p class="ayuda">Escribe arriba para buscar entre los ${l.length} transportistas.</p>`;
-  }
-  $('#tCuerpo').innerHTML = html;
-}
-$('#tBus').oninput = pintarTrans;
-$('#tCuerpo').onclick = async ev => {
-  const b = ev.target.closest('button[data-c]'); if (!b) return;
-  const c = b.dataset.c, n = b.dataset.n;
-  if (transDestino === 'anadir'){
-    transA = c ? { c, n } : null; $('#aTrans').textContent = c ? n : 'Automático (recomendado)'; cerrar(); return;
-  }
-  b.disabled = true; b.querySelector('span').textContent = 'Cambiando…';
-  if (await accion('transportista', { id: transDestino, courier: c }, 'Transportista cambiado')) cerrar();
-  else pintarTrans();
-};
-$('#bTransA').onclick = () => abrirTrans('anadir');
-
-/* ---------- Gestos: bajar para cerrar y tirar para actualizar ---------- */
-document.querySelectorAll('.hoja').forEach(h => {
-  let y0 = null, dy = 0;
-  h.addEventListener('touchstart', e => { if (h.scrollTop <= 0 && innerWidth < 700 && !e.target.closest('input,.t-lista')) { y0 = e.touches[0].clientY; dy = 0; } else y0 = null; }, { passive: true });
-  h.addEventListener('touchmove', e => {
-    if (y0 == null) return; dy = e.touches[0].clientY - y0;
-    if (dy > 0){ h.classList.add('arrastrando'); h.style.transform = `translateY(${dy}px)`; } }, { passive: true });
-  const soltar = ok => {
-    if (y0 == null) return; h.classList.remove('arrastrando'); h.style.transform = '';
-    if (ok && dy > 110) cerrar(); y0 = null; dy = 0; };
-  h.addEventListener('touchend', () => soltar(true));
-  h.addEventListener('touchcancel', () => soltar(false));
-});
-(() => {
-  const ptr = $('#ptr'); let y0 = null, dy = 0;
-  addEventListener('touchstart', e => { y0 = (scrollY <= 0 && !pila.length && e.touches.length === 1 && !e.target.closest('.nav,header,.nueva')) ? e.touches[0].clientY : null; dy = 0; }, { passive: true });
-  addEventListener('touchmove', e => {
-    if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0);
-    const k = Math.min(dy / 90, 1);
-    ptr.style.opacity = k; ptr.style.transform = `translateY(${Math.min(dy, 110) * .5 - 30}px) rotate(${dy * 3}deg)`; }, { passive: true });
-  const soltar = ok => {
-    if (y0 == null) return;
-    if (ok && dy > 90) actualizarAhora();
-    ptr.style.opacity = 0; ptr.style.transform = ''; y0 = null; dy = 0; };
-  addEventListener('touchend', () => soltar(true));
-  addEventListener('touchcancel', () => soltar(false));
-})();
-
-/* ---------- Arranque ---------- */
-pintar();
-$('#sEstado').textContent = cfg.url ? 'Comprobando la conexión…' : 'Sin conectar.';
-pintarAvisos();
-alAbrir();
-document.addEventListener('visibilitychange', () => { if (!document.hidden) alAbrir(); });
-addEventListener('pageshow', e => { if (e.persisted) alAbrir(); });
-setInterval(() => { if (!document.hidden) sincronizar(); }, 60000);
-setInterval(() => { if (!document.hidden) pintarCabecera(); }, 30000);
-let diaPintado = new Date().getDate();
-setInterval(() => { if (!document.hidden && !pila.length && new Date().getDate() !== diaPintado) { diaPintado = new Date().getDate(); pintar(); } }, 60000);
-/* ---------- Versión nueva ---------- */
-let regSW = null;
-async function comprobarVersion(){
-  try{
-    const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
-    const v = (await r.json()).v;
-    if (v && v !== VERSION) { $('#nueva').hidden = false; if (regSW) regSW.update().catch(() => {}); }
-  }catch(e){}
-}
-async function ponerVersionNueva(){
-  const b = $('#bRecargar'); b.textContent = 'Actualizando…'; b.disabled = true;
-  try{
-    if (regSW) { await regSW.update().catch(() => {}); if (regSW.waiting) regSW.waiting.postMessage('saltar'); }
-    const ks = await caches.keys();
-    await Promise.all(ks.filter(k => k !== 'mis-pedidos-fuentes').map(k => caches.delete(k)));
-  }catch(e){}
-  location.replace(location.pathname + '?v=' + Date.now());
-}
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => { regSW = reg; reg.update().catch(() => {}); }).catch(() => {});
-}
-$('#bRecargar').onclick = ponerVersionNueva;
-comprobarVersion();
-document.addEventListener('visibilitychange', () => { if (!document.hidden) comprobarVersion(); });
-setInterval(() => { if (!document.hidden) comprobarVersion(); }, 5 * 60000);
-// quitar el ?v= de la dirección después de actualizar
-if (location.search.includes('v=')) history.replaceState(null, '', location.pathname);
-</script>
+<script src="app.js"></script>
 </body>
 </html>

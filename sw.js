@@ -1,7 +1,7 @@
 // Mis pedidos · service worker
-const CACHE = 'mis-pedidos-v13';
+const CACHE = 'mis-pedidos-v14';
 const FUENTES = 'mis-pedidos-fuentes';
-const BASE = ['./', 'index.html', 'figtree.woff2', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
+const BASE = ['./', 'index.html', 'estilos.css', 'app.js', 'figtree.woff2', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
   // cache:'reload' → baja los archivos nuevos de verdad, sin usar la copia de 10 min de GitHub
