@@ -217,3 +217,4 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
   .ev.prim-ev .ev-p:before{box-shadow:none}
 }
 .toast.arriba{bottom:auto;top:20px}
+.dB small.extra{margin-top:2px}

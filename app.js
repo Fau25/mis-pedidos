@@ -1,5 +1,5 @@
 'use strict';
-const VERSION = 'v15';
+const VERSION = 'v16';
 const $ = s => document.querySelector(s);
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
@@ -152,6 +152,21 @@ function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.togg
 const terminado = p => p.archivado || p.estado === 'delivered';
 function diaDe(iso){ const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(local(iso) || ''); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null; }
 function hoy0(){ const d = new Date(); d.setHours(0,0,0,0); return d; }
+/* ---------- Movimientos en español ----------
+   Ship24 manda algunos movimientos en inglés («In transit», «Accepted»…): se traducen los habituales. */
+const TRADUCCION = [
+  [/^in transit$/i, 'En tránsito'], [/^accepted$/i, 'Aceptado'], [/^notified$/i, 'Notificado'],
+  [/^info(rmation)? received$/i, 'Información recibida'], [/^shipment information received$/i, 'Información recibida'],
+  [/^picked up$/i, 'Recogido'], [/^out for delivery$/i, 'En reparto'], [/^delivered$/i, 'Entregado'],
+  [/^(delivery )?attempt(ed)?( failed)?$/i, 'Intento de entrega fallido'], [/^failed attempt$/i, 'Intento de entrega fallido'],
+  [/^available for pick ?up$/i, 'Disponible para recoger'], [/^ready for pick ?up$/i, 'Disponible para recoger'],
+  [/^arrived at (the )?(facility|hub|sorting center|depot)$/i, 'Llegada a la delegación'],
+  [/^departed (from )?(the )?(facility|hub|sorting center|depot)$/i, 'Salida de la delegación'],
+  [/^exception$/i, 'Incidencia'], [/^returned( to sender)?$/i, 'Devuelto al remitente'], [/^customs clearance$/i, 'En aduana'],
+  [/^cleared customs$/i, 'Despachado en aduana'], [/^label created$/i, 'Etiqueta creada'], [/^pending$/i, 'Pendiente']
+];
+function traducir(t){ const s = String(t || '').trim(); for (const [re, es] of TRADUCCION) if (re.test(s)) return es; return s; }
+
 /* ---------- Día de llegada ----------
    1) la fecha que pongas tú en Editar; 2) la que da Ship24; 3) la que venga escrita en un movimiento
    («entrega prevista 03/11», «fecha estimada de entrega: 03-11-2026», «se entregará el 3 de noviembre»…). */
@@ -178,6 +193,7 @@ function fechaEnTexto(t, ref){
 }
 function llegadaDe(p){
   if (p.llegadaManual) return { iso: p.llegadaManual, origen: 'tuya' };
+  if (p.estimadaTransportista) return { iso: p.estimadaTransportista, origen: 'transportista', hora: p.horaMax || '' };
   if (p.estimada) return { iso: p.estimada, origen: 'ship24' };
   for (const ev of (p.eventos || [])) { const f = fechaEnTexto(ev.texto || '', local(ev.fecha) || undefined); if (f) return { iso: f, origen: 'movimiento' }; }
   return { iso: '', origen: '' };
@@ -247,7 +263,7 @@ function tarjeta(p){
   const cour = (p.couriers || []).map(courier).join(' → ');
   const sub = [cour, p.tienda].filter(Boolean).join(' · ') || p.numero;
   const donde = quieto(p) ? 'Sin movimiento desde ' + (ev ? corto(ev.fecha).toLowerCase() : 'que lo añadiste')
-    : (ev && (ciudad(ev.lugar) || ev.texto)) || 'Esperando datos';
+    : (ev && (ciudad(ev.lugar) || traducir(ev.texto))) || 'Esperando datos';
   return `<div class="fila">
     <button class="card ${terminado(p) ? 'fin' : ''}" data-id="${esc(p.id)}">
       <div class="c-top"><span class="burb" style="color:var(${e.c})">${ico(p.estado === 'delivered' ? 'i-ok' : e.i)}</span>
@@ -307,14 +323,14 @@ function pintarFicha(){
           return `<div class="ev ${i === 0 ? 'prim-ev' : ''}">
             <div class="ev-f"><b>${esc(corto(v.fecha) || '—')}</b>${m ? `<small>${m[1]}:${m[2]}</small>` : ''}</div>
             <div class="ev-p"></div>
-            <div class="ev-t"><b>${esc(v.texto)}</b>${v.lugar ? `<small>${esc(v.lugar)}</small>` : ''}</div>
+            <div class="ev-t"><b>${esc(traducir(v.texto))}</b>${v.lugar ? `<small>${esc(v.lugar)}</small>` : ''}</div>
           </div>`; }).join('')
         : '<div class="ev prim-ev"><div class="ev-f"><b>Ahora</b></div><div class="ev-p"></div><div class="ev-t"><b>Esperando el primer movimiento</b><small>La empresa de transporte aún no ha publicado datos. Aparecerán aquí solos.</small></div></div>'}
     </div>
     <div class="dB">
       <div><small>Transporte</small><b>${esc(cour)}</b></div>
       <div><small>Tienda</small><b>${esc(p.tienda || '—')}</b></div>
-      <div><small>${p.estado === 'delivered' ? 'Entregado' : { tuya:'Llegada (puesta por ti)', ship24:'Llegada estimada', movimiento:'Llegada prevista', '':'Llegada estimada' }[llegadaDe(p).origen]}</small><b>${p.estado === 'delivered' ? esc(fecha(evs[0] && evs[0].fecha) || '—') : esc(llegada(p) ? corto(llegada(p)) : 'Sin fecha')}</b></div>
+      <div><small>${p.estado === 'delivered' ? 'Entregado' : { tuya:'Llegada (puesta por ti)', transportista:'Llegada según ' + (cour.split(' → ')[0] || 'el transportista'), ship24:'Llegada estimada', movimiento:'Llegada prevista', '':'Llegada estimada' }[llegadaDe(p).origen]}</small><b>${p.estado === 'delivered' ? esc(fecha(evs[0] && evs[0].fecha) || '—') : esc(llegada(p) ? corto(llegada(p)) : 'Sin fecha')}</b>${p.estado !== 'delivered' && llegadaDe(p).hora ? `<small class="extra">antes de las ${esc(llegadaDe(p).hora)}</small>` : ''}</div>
       <div><small>Comprobado</small><b>${esc(hace(p.actualizado) || '—')}</b></div>
     </div>
     ${p.errorUltimo ? `<p class="ayuda peligro">Última revisión con error: ${esc(errorTxt({error:p.errorUltimo}))}</p>` : ''}
@@ -330,7 +346,7 @@ function pintarFicha(){
   $('#bCopiar').onclick = () => navigator.clipboard.writeText(p.numero).then(() => toast('Número copiado'), () => toast('No se ha podido copiar'));
   $('#bEditar').onclick = () => {
     $('#eNom').value = p.nombre; $('#eTienda').value = p.tienda || ''; $('#eLlegada').value = p.llegadaManual || '';
-    const auto = p.estimada || (llegadaDe(Object.assign({}, p, { llegadaManual: '' })).iso);
+    const auto = llegadaDe(Object.assign({}, p, { llegadaManual: '' })).iso;
     $('#eLlegadaAyuda').textContent = auto ? `Sin poner nada se usa la que da el transportista: ${corto(auto).toLowerCase()}.` : 'Ship24 no da fecha para este pedido. Si la ves en la web del transportista, ponla aquí.';
     abrir('hEditar', true);
   };
