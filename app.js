@@ -1,5 +1,5 @@
 'use strict';
-const VERSION = 'v16';
+const VERSION = 'v17';
 const $ = s => document.querySelector(s);
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
@@ -191,10 +191,13 @@ function fechaEnTexto(t, ref){
   if (m) return iso(m[3] ? +m[3] : 0, MESES_LARGOS.indexOf(m[2].toLowerCase()) + 1, +m[1]);
   return '';
 }
+function diaMes(iso){ const d = diaDe(iso); return d ? `${d.getDate()} ${MESES[d.getMonth()]}` : ''; }
+function textoLlegada(p){ const l = llegadaDe(p); return !l.iso ? '' : l.hasta ? `${diaMes(l.desde)} – ${diaMes(l.hasta)}` : corto(l.iso); }
 function llegadaDe(p){
   if (p.llegadaManual) return { iso: p.llegadaManual, origen: 'tuya' };
   if (p.estimadaTransportista) return { iso: p.estimadaTransportista, origen: 'transportista', hora: p.horaMax || '' };
   if (p.estimada) return { iso: p.estimada, origen: 'ship24' };
+  if (p.correo && p.correo.desde) return { iso: p.correo.hasta || p.correo.desde, desde: p.correo.desde, hasta: p.correo.hasta || '', origen: 'correo' };
   for (const ev of (p.eventos || [])) { const f = fechaEnTexto(ev.texto || '', local(ev.fecha) || undefined); if (f) return { iso: f, origen: 'movimiento' }; }
   return { iso: '', origen: '' };
 }
@@ -224,7 +227,7 @@ function ruta(p, e, corta){
   const bolaIco = fin ? 'i-ok' : e.i;
   return `<div class="ruta">
       <div><small>${esc(ini ? corto(ini.fecha) : corto(new Date(p.creado||Date.now()).toISOString()))}</small><b>${esc(ciudad(ini && ini.lugar) || p.tienda || 'Origen')}</b></div>
-      <div><small>${esc(corta ? (fin ? 'Entregado' : 'Llegada') : fin ? corto(ult && ult.fecha) : p.estado === 'available_for_pickup' ? 'Listo para recoger' : llegada(p) ? (retrasado(p) ? 'Debía llegar ' : 'Llega ') + corto(llegada(p)).toLowerCase() : 'Sin fecha')}</small><b>${esc(fin ? (ciudad(ult && ult.lugar) || 'Entregado') : p.estado === 'available_for_pickup' ? 'Recoger' : 'Tu casa')}</b></div>
+      <div><small>${esc(corta ? (fin ? 'Entregado' : 'Llegada') : fin ? corto(ult && ult.fecha) : p.estado === 'available_for_pickup' ? 'Listo para recoger' : llegada(p) ? (retrasado(p) ? 'Debía llegar ' : llegadaDe(p).hasta ? 'Llega entre ' : 'Llega ') + textoLlegada(p).toLowerCase().replace(' – ', ' y ') : 'Sin fecha')}</small><b>${esc(fin ? (ciudad(ult && ult.lugar) || 'Entregado') : p.estado === 'available_for_pickup' ? 'Recoger' : 'Tu casa')}</b></div>
     </div>
     <div class="barra" style="--c:var(${e.c})">
       <i class="hecho" style="width:calc((100% - 16px) * ${pct/100})"></i>
@@ -254,6 +257,7 @@ function sello(p){
   if (!d) return html('suave', 'llegada', '—', 'sin fecha', true);
   const dif = Math.round((d - hoy0()) / 864e5);
   if (retrasado(p)) return html('coral', 'debía', d.getDate(), MES[d.getMonth()]);
+  if (llegadaDe(p).hasta && dif > 0) return html('', 'como tarde', d.getDate(), MES[d.getMonth()]);
   if (dif === 0) return html('', 'llega', 'Hoy', MES[d.getMonth()] + ' ' + d.getDate(), true);
   if (dif === 1) return html('', 'mañana', d.getDate(), MES[d.getMonth()]);
   return html('', DIA[d.getDay()], d.getDate(), MES[d.getMonth()]);
@@ -330,7 +334,7 @@ function pintarFicha(){
     <div class="dB">
       <div><small>Transporte</small><b>${esc(cour)}</b></div>
       <div><small>Tienda</small><b>${esc(p.tienda || '—')}</b></div>
-      <div><small>${p.estado === 'delivered' ? 'Entregado' : { tuya:'Llegada (puesta por ti)', transportista:'Llegada según ' + (cour.split(' → ')[0] || 'el transportista'), ship24:'Llegada estimada', movimiento:'Llegada prevista', '':'Llegada estimada' }[llegadaDe(p).origen]}</small><b>${p.estado === 'delivered' ? esc(fecha(evs[0] && evs[0].fecha) || '—') : esc(llegada(p) ? corto(llegada(p)) : 'Sin fecha')}</b>${p.estado !== 'delivered' && llegadaDe(p).hora ? `<small class="extra">antes de las ${esc(llegadaDe(p).hora)}</small>` : ''}</div>
+      <div><small>${p.estado === 'delivered' ? 'Entregado' : { tuya:'Llegada (puesta por ti)', transportista:'Llegada según ' + (cour.split(' → ')[0] || 'el transportista'), ship24:'Llegada estimada', correo:'Llegada según el correo', movimiento:'Llegada prevista', '':'Llegada estimada' }[llegadaDe(p).origen]}</small><b>${p.estado === 'delivered' ? esc(fecha(evs[0] && evs[0].fecha) || '—') : esc(llegada(p) ? textoLlegada(p) : 'Sin fecha')}</b>${p.estado !== 'delivered' && llegadaDe(p).hora ? `<small class="extra">antes de las ${esc(llegadaDe(p).hora)}</small>` : ''}</div>
       <div><small>Comprobado</small><b>${esc(hace(p.actualizado) || '—')}</b></div>
     </div>
     ${p.errorUltimo ? `<p class="ayuda peligro">Última revisión con error: ${esc(errorTxt({error:p.errorUltimo}))}</p>` : ''}
@@ -347,7 +351,7 @@ function pintarFicha(){
   $('#bEditar').onclick = () => {
     $('#eNom').value = p.nombre; $('#eTienda').value = p.tienda || ''; $('#eLlegada').value = p.llegadaManual || '';
     const auto = llegadaDe(Object.assign({}, p, { llegadaManual: '' })).iso;
-    $('#eLlegadaAyuda').textContent = auto ? `Sin poner nada se usa la que da el transportista: ${corto(auto).toLowerCase()}.` : 'Ship24 no da fecha para este pedido. Si la ves en la web del transportista, ponla aquí.';
+    $('#eLlegadaAyuda').textContent = auto ? `Sin poner nada se usa la automática: ${textoLlegada(Object.assign({}, p, { llegadaManual: '' })).toLowerCase()}.` : 'Ship24 no da fecha para este pedido. Si la ves en la web del transportista, ponla aquí.';
     abrir('hEditar', true);
   };
   $('#bArch').onclick = () => accion('editar', { id:p.id, archivado:!p.archivado }, p.archivado ? 'Vuelve a la lista' : 'Archivado').then(ok => ok && cerrar());
