@@ -1,5 +1,5 @@
 'use strict';
-const VERSION = 'v17';
+const VERSION = 'v18';
 const $ = s => document.querySelector(s);
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
@@ -197,7 +197,7 @@ function llegadaDe(p){
   if (p.llegadaManual) return { iso: p.llegadaManual, origen: 'tuya' };
   if (p.estimadaTransportista) return { iso: p.estimadaTransportista, origen: 'transportista', hora: p.horaMax || '' };
   if (p.estimada) return { iso: p.estimada, origen: 'ship24' };
-  if (p.correo && p.correo.desde) return { iso: p.correo.hasta || p.correo.desde, desde: p.correo.desde, hasta: p.correo.hasta || '', origen: 'correo' };
+  if (p.correo && p.correo.desde) return { iso: p.correo.hasta || p.correo.desde, desde: p.correo.desde, hasta: p.correo.hasta || '', hora: p.correo.hora || '', origen: 'correo' };
   for (const ev of (p.eventos || [])) { const f = fechaEnTexto(ev.texto || '', local(ev.fecha) || undefined); if (f) return { iso: f, origen: 'movimiento' }; }
   return { iso: '', origen: '' };
 }
