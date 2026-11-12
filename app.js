@@ -1,5 +1,5 @@
 'use strict';
-const VERSION = 'v18';
+const VERSION = 'v19';
 const $ = s => document.querySelector(s);
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
@@ -262,6 +262,29 @@ function sello(p){
   if (dif === 1) return html('', 'mañana', d.getDate(), MES[d.getMonth()]);
   return html('', DIA[d.getDay()], d.getDate(), MES[d.getMonth()]);
 }
+/* ---------- Escritorio (desde 1024 px): la ficha va en un panel fijo a la derecha ---------- */
+const MQ = matchMedia('(min-width:1024px)');
+const modoPanel = () => MQ.matches;
+function mostrarPanel(){
+  const h = $('#hFicha');
+  if (!modoPanel() || !abierto) { h.classList.remove('panel'); if (!pila.includes('hFicha')) h.classList.remove('on'); estadoHojas(); return; }
+  pintarFicha();
+  h.classList.add('on', 'panel'); h.setAttribute('role', 'region'); h.removeAttribute('aria-modal');
+  document.querySelectorAll('#lista .card').forEach(c => c.classList.toggle('elegida', c.dataset.id === abierto));
+  estadoHojas();
+}
+function elegirEnPanel(){
+  if (!modoPanel()) return;
+  const ids = [...document.querySelectorAll('#lista .card')].map(c => c.dataset.id);
+  if (!ids.includes(abierto)) abierto = ids[0] || null;
+  mostrarPanel();
+}
+MQ.addEventListener('change', () => {
+  const h = $('#hFicha');
+  if (modoPanel()) { if (pila.includes('hFicha')) { pila = pila.filter(x => x !== 'hFicha'); if (!pila.length) $('#velo').classList.remove('on'); } elegirEnPanel(); }
+  else { h.classList.remove('panel', 'on'); h.setAttribute('role', 'dialog'); h.setAttribute('aria-modal', 'true'); abierto = null; estadoHojas(); }
+});
+
 function tarjeta(p){
   const e = vista(p), ev = (p.eventos || [])[0];
   const cour = (p.couriers || []).map(courier).join(' → ');
@@ -269,7 +292,7 @@ function tarjeta(p){
   const donde = quieto(p) ? 'Sin movimiento desde ' + (ev ? corto(ev.fecha).toLowerCase() : 'que lo añadiste')
     : (ev && (ciudad(ev.lugar) || traducir(ev.texto))) || 'Esperando datos';
   return `<div class="fila">
-    <button class="card ${terminado(p) ? 'fin' : ''}" data-id="${esc(p.id)}">
+    <button class="card ${terminado(p) ? 'fin' : ''} ${modoPanel() && p.id === abierto ? 'elegida' : ''}" data-id="${esc(p.id)}">
       <div class="c-top"><span class="burb" style="color:var(${e.c})">${ico(p.estado === 'delivered' ? 'i-ok' : e.i)}</span>
         <div class="c-main"><div class="c-nom">${esc(p.nombre)}</div><div class="c-sub">${esc(sub)}</div></div>${sello(p)}</div>
       <div class="c-pie">${estChip(p)}<span class="c-donde" style="${quieto(p) ? 'color:var(--st-err)' : ''}">${ico(quieto(p) ? 'i-reloj' : 'i-pin')}<span>${esc(donde)}</span></span></div>
@@ -299,13 +322,14 @@ function pintar(){
     if (arc.length) html += `<div class="sec-t">Archivados</div>` + arc.map(tarjeta).join('');
   }
   $('#lista').innerHTML = html;
+  elegirEnPanel();
 }
 function vacio([t, s]){ return `<div class="vacio">${ico('i-caja')}<b>${t}</b>${s}</div>`; }
 
 /* ---------- Ficha ---------- */
 function pintarFicha(){
   const p = (datos.pedidos || []).find(x => x.id === abierto);
-  if (!p) { cerrar(); return; }
+  if (!p) { if (modoPanel()) { abierto = null; mostrarPanel(); } else cerrar(); return; }
   const e = vista(p), col = `var(${e.c})`;
   $('#fNom').textContent = 'Seguimiento';
   const evs = p.eventos || [];
@@ -372,7 +396,9 @@ let focoAntes = null;
 function estadoHojas(){
   // Solo la hoja de arriba se puede usar; las cerradas y lo de detrás quedan inertes (ni Tab ni lector de pantalla)
   const arriba = pila[pila.length - 1];
-  document.querySelectorAll('.hoja').forEach(h => { const on = h.id === arriba; h.inert = !on; h.setAttribute('aria-hidden', !on); });
+  document.querySelectorAll('.hoja').forEach(h => {
+    if (h.classList.contains('panel')) { h.inert = !!pila.length; h.removeAttribute('aria-hidden'); return; }
+    const on = h.id === arriba; h.inert = !on; h.setAttribute('aria-hidden', !on); });
   FONDO.forEach(s => { const el = $(s); if (el) el.inert = !!pila.length; });
 }
 function enfocar(id){
@@ -388,13 +414,20 @@ function abrir(id, encima){
 }
 function cerrar(){
   const id = pila.pop(); if (id) $('#' + id).classList.remove('on');
-  if (id === 'hFicha') abierto = null;
+  if (id === 'hFicha' && !modoPanel()) abierto = null;
   if (pila.length) { $('#' + pila[pila.length-1]).classList.add('on'); }
-  else { $('#velo').classList.remove('on'); abierto = null; }
+  else { $('#velo').classList.remove('on'); if (!modoPanel()) abierto = null; }
   estadoHojas();
   if (!pila.length && focoAntes && document.contains(focoAntes)) focoAntes.focus({ preventScroll: true });
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && pila.length) { e.preventDefault(); cerrar(); } });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && pila.length) { e.preventDefault(); cerrar(); return; }
+  if (modoPanel() && !pila.length && (e.key === 'ArrowDown' || e.key === 'ArrowUp') && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) {
+    const cs = [...document.querySelectorAll('#lista .card')], i = cs.findIndex(c => c.dataset.id === abierto);
+    const sig = cs[Math.max(0, Math.min(cs.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))];
+    if (sig) { e.preventDefault(); abierto = sig.dataset.id; mostrarPanel(); sig.focus({ preventScroll: false }); }
+  }
+});
 let confirmarSi = null;
 function confirmar(titulo, texto, boton, alSi){
   $('#cTit').textContent = titulo; $('#cTxt').textContent = texto; $('#cSi').textContent = boton;
@@ -412,7 +445,7 @@ document.querySelectorAll('.nav button[data-tab]').forEach(b => b.onclick = () =
 });
 $('#lista').onclick = ev => {
   if (ev.target.closest('#bNuevo')) return $('#bAnadir').onclick();
-  const c = ev.target.closest('.card'); if (c){ abierto = c.dataset.id; pintarFicha(); abrir('hFicha'); }
+  const c = ev.target.closest('.card'); if (c){ abierto = c.dataset.id; if (modoPanel()) mostrarPanel(); else { pintarFicha(); abrir('hFicha'); } }
 };
 $('#bAct').onclick = actualizarAhora;
 $('#bAjus').onclick = () => { $('#sUrl').value = cfg.url; $('#sClave').value = cfg.clave; abrir('hAjus'); };

@@ -202,6 +202,34 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
 @media (min-width:700px){ .hoja{bottom:auto;top:50%;border-radius:32px;transform:translateY(-40%) scale(.98);opacity:0;pointer-events:none;transition:.22s}
   .hoja.on{transform:translateY(-50%);opacity:1;pointer-events:auto} .asa{display:none} }
 @media (max-width:360px){ .pild span{display:none} .pild{padding:0 15px} .nav button.on{padding:0 16px} .nav button .lbl span{display:none} }
+/* Escritorio: desde 1024 px, lista a la izquierda y seguimiento a la derecha; desde 1280 px, datos en una 3.ª columna */
+@media (min-width:1024px){
+  header{padding-left:28px;padding-right:28px}
+  .top,.red-txt{max-width:none;margin-left:0;margin-right:0}
+  .top{padding-right:0}
+  .nav{top:14px;bottom:auto;left:230px;right:auto;max-width:none;margin:0;height:58px;gap:4px;padding:0 6px;box-shadow:var(--shadow);border-radius:30px}
+  .nav button{height:46px}
+  .nav button .lbl{display:inline;font-size:15px}
+  .nav button:not(.on):hover{background:var(--bg)}
+  main{max-width:none;margin:0;width:420px;padding:6px 0 40px 28px}
+  .card{cursor:pointer;transition:box-shadow .15s}
+  .card:hover{box-shadow:var(--shadow),0 0 0 2px color-mix(in srgb,var(--morado) 35%,transparent)}
+  .card.elegida{box-shadow:var(--shadow),0 0 0 2px var(--morado)}
+  .nueva{bottom:24px}
+  #hFicha.panel{position:fixed;top:80px;left:472px;right:28px;bottom:0;max-width:none;max-height:none;margin:0;transform:none;opacity:1;pointer-events:auto;
+    background:transparent;border-radius:0;padding:6px 0 32px;z-index:2;transition:none}
+  #hFicha.panel .asa,#hFicha.panel .h-top{display:none}
+  .acciones>*:hover .circ{box-shadow:var(--shadow-btn),0 0 0 2px var(--line)}
+}
+@media (min-width:1280px){
+  #hFicha.panel #fCuerpo{display:grid;grid-template-columns:minmax(0,1fr) 320px;column-gap:20px;align-items:start}
+  #hFicha.panel .f-cab{grid-column:1;grid-row:1}
+  #hFicha.panel .linea{grid-column:1;grid-row:2 / span 3}
+  #hFicha.panel .dB{grid-column:2;grid-row:1;margin:0;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:6px 14px 10px}
+  #hFicha.panel .ayuda{grid-column:2;grid-row:3}
+  #hFicha.panel .acciones{grid-column:2;grid-row:2;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-top:16px}
+  #hFicha.panel .acciones>*{width:auto}
+}
 @media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
 
 /* Confirmación propia (sustituye al aviso del sistema) */
