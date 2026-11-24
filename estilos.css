@@ -1,5 +1,4 @@
 /* Tipografía incluida en la app: sin descargas externas ni saltos al abrir */
-@font-face{font-family:"Figtree";src:url("figtree.woff2") format("woff2");font-weight:300 900;font-style:normal;font-display:block}
 /* Fondo cálido, tarjetas blancas muy redondeadas, píldoras. Violeta donde la referencia usa negro.
    Lista con columna de fechas a la izquierda y barra de navegación flotante abajo. */
 :root{
@@ -246,3 +245,61 @@ label{display:block;font-weight:500;font-size:14px;color:var(--ink2);margin:16px
 }
 .toast.arriba{bottom:auto;top:20px}
 .dB small.extra{margin-top:2px}
+
+/* ======================= v20 · ESTILO «AURORA · ALBA» (el mismo que Mis apps, Mi Día, Hábitos, Mis Tickets y Mi Mascota) =======================
+   Fondo claro con brumas lavanda, menta y melocotón; cristal blanco; todo en Sora con jerarquía por pesos;
+   acento melocotón mate en lo activo; estados en tonos pastel. Siempre claro. */
+@font-face{font-family:"Sora";src:url("sora-400.woff2") format("woff2");font-weight:400;font-display:block}
+@font-face{font-family:"Sora";src:url("sora-500.woff2") format("woff2");font-weight:500;font-display:block}
+@font-face{font-family:"Sora";src:url("sora-600.woff2") format("woff2");font-weight:600;font-display:block}
+@font-face{font-family:"Sora";src:url("sora-700.woff2") format("woff2");font-weight:700 900;font-display:block}
+:root,:root:root{
+  --bg:#F3EEF1; --card:rgba(255,255,255,.62); --ink:#2A2433; --ink2:#857D92; --ink3:#C9C1D2; --line:rgba(42,36,51,.09); --soft:rgba(42,36,51,.06);
+  --acc:#FFCBB3; --acc-soft:rgba(211,198,255,.4); --on-acc:#2A2433;
+  --coral:#FFB8A8; --on-coral:#2A2433; --morado:#7A68C9;
+  --st-pend:#A39BB0; --st-tran:#7A68C9; --st-rep:#7A68C9; --st-rec:#A77BD0; --st-ok:#3E9A7A; --st-err:#C0574A; --acc-medio:#B9A9F0;
+  --shadow:0 10px 30px rgba(120,100,140,.10),0 1px 3px rgba(120,100,140,.05);
+  --shadow-btn:0 6px 18px rgba(120,100,140,.10);
+  --borde:1px solid rgba(255,255,255,.95);
+  --f:"Sora",system-ui,-apple-system,sans-serif;
+  color-scheme:light;
+}
+html{background:#F3EEF1}
+body{letter-spacing:-.01em;background:radial-gradient(60% 40% at 8% 4%,rgba(190,172,255,.5),transparent 70%),radial-gradient(50% 35% at 96% 22%,rgba(160,226,205,.4),transparent 70%),radial-gradient(55% 40% at 70% 102%,rgba(255,186,164,.45),transparent 70%),#F3EEF1;background-attachment:fixed}
+.titulo,.h-top h2{font-weight:600;letter-spacing:-.04em}
+.c-nom,.ev-t b,.ruta b,.dB b{font-weight:600;letter-spacing:-.02em}
+.sello b{letter-spacing:-.04em}
+/* cristal */
+.card,.vacio,.pild,.btn-ico,.campo,.sel,.t-lista,.f-cab,.linea,.acciones .circ,.nav,.ptr{border:var(--borde);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+header{background:linear-gradient(180deg,rgba(243,238,241,.94) 0%,rgba(243,238,241,.82) 70%,rgba(243,238,241,0) 100%);-webkit-backdrop-filter:none;backdrop-filter:none}
+.nav{background:rgba(255,255,255,.72)}
+.hoja{background:#FBF8FA}
+.velo{background:rgba(90,76,110,.25)}
+.campo:focus-within{border-color:#B9A9F0}
+.redondo{box-shadow:0 8px 20px rgba(255,160,130,.3)}
+.mini,.t-lista button.on{color:#6F5CC4}
+.vacio .ico{color:#8B78D8}
+/* sellos de fecha y estados */
+.sello{background:linear-gradient(150deg,#D3C6FF,#B5E9D8);color:var(--ink)}
+.sello small{opacity:.75}
+.sello.coral{background:linear-gradient(150deg,#FFD6C6,#FFC0AA);color:var(--ink)}
+.sello.verde{background:linear-gradient(150deg,#B5E9D8,#D8F0C8);color:var(--ink)}
+.est.lleno{background:rgba(211,198,255,.6);color:var(--ink)}
+.barra .bola{color:#fff}
+.nuevo{border-color:rgba(42,36,51,.22)}
+/* la línea de seguimiento morada pasa a degradado pastel */
+.linea.morada{background:linear-gradient(150deg,#D3C6FF 0%,#C7DDF3 50%,#B5E9D8 100%);border:var(--borde);box-shadow:0 14px 34px rgba(120,100,140,.16)}
+.linea.morada .ev-f b,.linea.morada .ev-t b{color:var(--ink)}
+.linea.morada .ev-f small,.linea.morada .ev-t small{color:#5E566E}
+.linea.morada .ev-p:before{background:rgba(42,36,51,.22)}
+.linea.morada .ev:not(:last-child) .ev-p:after{background:rgba(42,36,51,.14)}
+.linea.morada .ev.prim-ev .ev-p:before{background:var(--ink);box-shadow:0 0 0 5px rgba(255,255,255,.55)}
+.dB div{border-left-color:#B9A9F0}
+.toast,.nueva{background:var(--ink);color:#fff}
+@media (min-width:1024px){
+  .nav button:not(.on):hover{background:rgba(255,255,255,.8)}
+  .card:hover{box-shadow:var(--shadow),0 0 0 2px rgba(255,255,255,.95)}
+  .card.elegida{box-shadow:var(--shadow),0 0 0 2px #FFB394}
+  #hFicha.panel .dB{border:var(--borde)}
+  #hFicha.panel .acciones small{font-size:11px;letter-spacing:-.02em}
+}

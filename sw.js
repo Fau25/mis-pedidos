@@ -1,7 +1,7 @@
 // Mis pedidos · service worker
-const CACHE = 'mis-pedidos-v19';
+const CACHE = 'mis-pedidos-v20';
 const FUENTES = 'mis-pedidos-fuentes';
-const BASE = ['./', 'index.html', 'estilos.css', 'app.js', 'figtree.woff2', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
+const BASE = ['./', 'index.html', 'estilos.css', 'app.js', 'sora-400.woff2', 'sora-500.woff2', 'sora-600.woff2', 'sora-700.woff2', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
   // cache:'reload' → baja los archivos nuevos de verdad, sin usar la copia de 10 min de GitHub
@@ -12,7 +12,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
-    .then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== FUENTES).map(k => caches.delete(k))))
+    .then(ks => Promise.all(ks.filter(k => k.startsWith('mis-pedidos-') && k !== CACHE && k !== FUENTES).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
