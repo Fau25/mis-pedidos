@@ -1,5 +1,5 @@
 'use strict';
-const VERSION = 'v20';
+const VERSION = 'v21';
 const $ = s => document.querySelector(s);
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },

@@ -303,3 +303,22 @@ header{background:linear-gradient(180deg,rgba(243,238,241,.94) 0%,rgba(243,238,2
   #hFicha.panel .dB{border:var(--borde)}
   #hFicha.panel .acciones small{font-size:11px;letter-spacing:-.02em}
 }
+
+/* Menú común de Mis apps: Ajustes arriba a la derecha; abajo píldora (icono + nombre) con el «+» aparte a su derecha */
+.redondo.neutro{background:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.95);color:var(--ink);box-shadow:0 6px 18px rgba(120,100,140,.12);position:relative}
+.redondo.neutro .ico{width:21px;height:21px;stroke-width:1.8}
+.redondo.neutro .marca{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--coral)}
+.titulo{font-weight:600;font-size:30px}
+@media (max-width:1023px){
+  .top .redondo,.top .pild{width:44px;height:44px;padding:0;justify-content:center;border-radius:50%}
+  .pild span{display:none}
+  .nav{left:calc(50% - 145px);right:auto;bottom:calc(14px + env(safe-area-inset-bottom));width:224px;max-width:none;height:auto;margin:0;padding:5px;gap:4px;justify-content:flex-start;
+    border:1px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(120,100,140,.14);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+  .nav button{width:104px;min-width:0;height:52px;padding:0;flex-direction:column;gap:2px;color:#6E6680}
+  .nav button.on{padding:0;color:var(--on-acc)}
+  .nav button .ico{width:20px;height:20px}
+  .nav button .lbl{display:inline;font-size:11px;font-weight:600}
+  .nav button .lbl span{display:none}
+  .top #bAnadir{position:fixed;z-index:6;left:calc(50% + 89px);bottom:calc(14px + env(safe-area-inset-bottom) + 4px);width:56px;height:56px}
+}
+.pild{max-width:none}
